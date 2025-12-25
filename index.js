@@ -245,13 +245,13 @@ function isOwner(message) {
   return message.author.id === BOT_OWNER_ID;
 }
 
-const baseContainer = (title, footer = 'Seylun • Stable Build') =>
+const baseContainer = (title) =>
   new ContainerBuilder()
     .setAccentColor(0x2b2d31)
     .addTextDisplayComponents((text) => text.setContent(`**${title}**`));
 
 // Optimized helper: Creates a complete container with title, content, and footer
-const createContainer = (title, content, footer = 'Seylun • Stable Build') =>
+const createContainer = (title, content, botName = 'Bot') =>
   new ContainerBuilder()
     .setAccentColor(0x2b2d31)
     .addTextDisplayComponents(
@@ -259,20 +259,114 @@ const createContainer = (title, content, footer = 'Seylun • Stable Build') =>
       (text) => text.setContent(content)
     )
     .addSeparatorComponents((sep) => sep.setDivider(true))
-    .addTextDisplayComponents((text) => text.setContent(`-# ${footer}`));
+    .addTextDisplayComponents((text) => text.setContent(`-# ${botName} • Stable Build`));
 
 // Optimized helper: Creates a container with an image
-const createImageContainer = (title, imageUrl, footer = 'Seylun • Stable Build') =>
+const createImageContainer = (title, imageUrl, botName = 'Bot') =>
   new ContainerBuilder()
     .setAccentColor(0x2b2d31)
     .addTextDisplayComponents((text) => text.setContent(`**${title}**`))
     .addMediaGalleryComponents((gallery) => gallery.addItems((item) => item.setURL(imageUrl)))
     .addSeparatorComponents((sep) => sep.setDivider(true))
-    .addTextDisplayComponents((text) => text.setContent(`-# ${footer}`));
+    .addTextDisplayComponents((text) => text.setContent(`-# ${botName} • Stable Build`));
 
-// Optimized helper: Send a V2 container reply
+// Optimized helper: Send a V2 container reply (no ping)
 const sendContainer = (message, container) =>
-  message.reply({ components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => { });
+  message.reply({
+    components: [container],
+    flags: MessageFlags.IsComponentsV2,
+    allowedMentions: { repliedUser: false }
+  }).catch(() => { });
+
+// Reusable help categories data
+const HELP_CATEGORIES = {
+  utility: {
+    emoji: '🛠️', title: 'Utility Commands', commands: [
+      { name: ',ping', desc: 'Check bot latency' },
+      { name: ',info', desc: 'Bot info' },
+      { name: ',avatar', desc: 'User avatar' },
+      { name: ',userinfo', desc: 'User details' },
+      { name: ',translate', desc: 'Translate a message' },
+      { name: ',uptime', desc: 'Bot uptime' }
+    ]
+  },
+  afk: {
+    emoji: '🕒', title: 'AFK Commands', commands: [
+      { name: ',afk', desc: 'Set AFK status' },
+      { name: ',afklb', desc: 'AFK leaderboard' }
+    ]
+  },
+  leaderboard: {
+    emoji: '🏆', title: 'Leaderboard Commands', commands: [
+      { name: ',msglb', desc: 'Message leaderboard' },
+      { name: ',afklb', desc: 'AFK leaderboard' }
+    ]
+  },
+  fun: {
+    emoji: '🎉', title: 'Fun Commands', commands: [
+      { name: ',roast', desc: 'Roast a user' },
+      { name: ',lore', desc: 'Generate chaotic lore' },
+      { name: ',av', desc: 'Strawberry spam' },
+      { name: ',cat', desc: 'Random cat image' },
+      { name: ',dog', desc: 'Random dog image' },
+      { name: ',bird', desc: 'Random bird image' },
+      { name: ',fact', desc: 'Useless fact' }
+    ]
+  },
+  moderation: {
+    emoji: '🛡️', title: 'Moderation Commands', commands: [
+      { name: ',kick', desc: 'Kick a user' },
+      { name: ',ban', desc: 'Ban a user' },
+      { name: ',clear', desc: 'Bulk delete messages' },
+      { name: ',purgeuser', desc: 'Delete user messages' },
+      { name: ',lock', desc: 'Lock channel' },
+      { name: ',unlock', desc: 'Unlock channel' },
+      { name: ',timeout', desc: 'Timeout a user' },
+      { name: ',mute', desc: 'Mute a user' },
+      { name: ',unmute', desc: 'Unmute a user' }
+    ]
+  },
+  owner: {
+    emoji: '👑', title: 'Owner Commands', commands: [
+      { name: ',blacklist', desc: 'Block user' },
+      { name: ',unblacklist', desc: 'Unblock user' },
+      { name: ',blacklistcheck', desc: 'View blacklist' },
+      { name: ',forceban', desc: 'Ban by ID' },
+      { name: ',forcekick', desc: 'Kick instantly' },
+      { name: ',changemood', desc: 'Set bot mood' },
+      { name: ',setstatus', desc: 'Set bot status' },
+      { name: ',servers', desc: 'View servers + invites' }
+    ]
+  }
+};
+
+// Helper: Create help dropdown menu
+const createHelpDropdown = () =>
+  new StringSelectMenuBuilder()
+    .setCustomId('help-menu')
+    .setPlaceholder('Select a category')
+    .addOptions(
+      Object.entries(HELP_CATEGORIES).map(([value, { emoji, title }]) => ({
+        label: title.replace(' Commands', ''),
+        value,
+        description: title
+      }))
+    );
+
+// Helper: Build category container from HELP_CATEGORIES
+const buildCategoryContainer = (category, botName) => {
+  const cat = HELP_CATEGORIES[category];
+  if (!cat) return null;
+  const commandList = cat.commands.map(c => `**${c.name}** - ${c.desc}`).join('\n');
+  return new ContainerBuilder()
+    .setAccentColor(0x2b2d31)
+    .addTextDisplayComponents(
+      (text) => text.setContent(`**${cat.emoji} ${cat.title}**`),
+      (text) => text.setContent(commandList)
+    )
+    .addSeparatorComponents((sep) => sep.setDivider(true))
+    .addTextDisplayComponents((text) => text.setContent(`-# ${botName} • Help System`));
+};
 
 function formatDuration(ms) {
   const units = [
@@ -399,7 +493,7 @@ async function handleAfkReturn(message) {
     .addSeparatorComponents((sep) => sep.setDivider(true))
     .addTextDisplayComponents((text) => text.setContent('-# AFK System'));
 
-  await message.reply({ components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => { });
+  await message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
 }
 
 // ===================== MESSAGE HANDLER ===================== //
@@ -432,9 +526,9 @@ client.on('messageCreate', async (message) => {
               )
             )
             .addSeparatorComponents((sep) => sep.setDivider(true))
-            .addTextDisplayComponents((text) => text.setContent('-# Seylun • AFK System'));
+            .addTextDisplayComponents((text) => text.setContent('\-# \ • AFK System'));
 
-          await message.reply({ components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => { });
+          await message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
         }
       }
     }
@@ -505,7 +599,7 @@ client.on('messageCreate', async (message) => {
           )
         )
         .addSeparatorComponents((sep) => sep.setDivider(true))
-        .addTextDisplayComponents((text) => text.setContent('-# Seylun • Stable Build'));
+        .addTextDisplayComponents((text) => text.setContent('\-# \ • Stable Build'));
 
       return message.reply({
         components: [container],
@@ -542,9 +636,9 @@ client.on('messageCreate', async (message) => {
           (text) => text.setContent(`<@${target.id}> ${roast}`)
         )
         .addSeparatorComponents((sep) => sep.setDivider(true))
-        .addTextDisplayComponents((text) => text.setContent('-# Seylun • Stable Build'));
+        .addTextDisplayComponents((text) => text.setContent('\-# \ • Stable Build'));
 
-      return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => { });
+      return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
     }
 
     if (command === 'lore') {
@@ -558,9 +652,9 @@ client.on('messageCreate', async (message) => {
           (text) => text.setContent(`<@${target.id}> ${lore}`)
         )
         .addSeparatorComponents((sep) => sep.setDivider(true))
-        .addTextDisplayComponents((text) => text.setContent('-# Seylun • Lore Engine'));
+        .addTextDisplayComponents((text) => text.setContent('\-# \ • Lore Engine'));
 
-      return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => { });
+      return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
     }
 
     if (command === 'av') {
@@ -580,9 +674,9 @@ client.on('messageCreate', async (message) => {
             gallery.addItems((item) => item.setURL(img))
           )
           .addSeparatorComponents((sep) => sep.setDivider(true))
-          .addTextDisplayComponents((text) => text.setContent('-# Seylun • Stable Build'));
+          .addTextDisplayComponents((text) => text.setContent('\-# \ • Stable Build'));
 
-        return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => { });
+        return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
       } catch {
         return message.reply('Could not fetch a cat right now.').catch(() => { });
       }
@@ -601,9 +695,9 @@ client.on('messageCreate', async (message) => {
             gallery.addItems((item) => item.setURL(img))
           )
           .addSeparatorComponents((sep) => sep.setDivider(true))
-          .addTextDisplayComponents((text) => text.setContent('-# Seylun • Stable Build'));
+          .addTextDisplayComponents((text) => text.setContent('\-# \ • Stable Build'));
 
-        return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => { });
+        return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
       } catch {
         return message.reply('Could not fetch a dog right now.').catch(() => { });
       }
@@ -622,9 +716,9 @@ client.on('messageCreate', async (message) => {
             gallery.addItems((item) => item.setURL(img))
           )
           .addSeparatorComponents((sep) => sep.setDivider(true))
-          .addTextDisplayComponents((text) => text.setContent('-# Seylun • Stable Build'));
+          .addTextDisplayComponents((text) => text.setContent('\-# \ • Stable Build'));
 
-        return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => { });
+        return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
       } catch {
         return message.reply('Could not fetch a bird right now.').catch(() => { });
       }
@@ -643,9 +737,9 @@ client.on('messageCreate', async (message) => {
             (text) => text.setContent(fact)
           )
           .addSeparatorComponents((sep) => sep.setDivider(true))
-          .addTextDisplayComponents((text) => text.setContent('-# Seylun • Stable Build'));
+          .addTextDisplayComponents((text) => text.setContent('\-# \ • Stable Build'));
 
-        return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => { });
+        return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
       } catch {
         const fallback = [
           'Honey never spoils.',
@@ -662,9 +756,9 @@ client.on('messageCreate', async (message) => {
             (text) => text.setContent(fallback[Math.floor(Math.random() * fallback.length)])
           )
           .addSeparatorComponents((sep) => sep.setDivider(true))
-          .addTextDisplayComponents((text) => text.setContent('-# Seylun • Stable Build'));
+          .addTextDisplayComponents((text) => text.setContent('\-# \ • Stable Build'));
 
-        return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => { });
+        return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
       }
     }
 
@@ -727,7 +821,7 @@ client.on('messageCreate', async (message) => {
         .addSeparatorComponents((sep) => sep.setDivider(true))
         .addTextDisplayComponents((text) => text.setContent('-# Owner Only Command'));
 
-      return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => { });
+      return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
     }
 
     // ===================== INFO / UTILITY COMMANDS ===================== //
@@ -759,9 +853,9 @@ client.on('messageCreate', async (message) => {
           )
         )
         .addSeparatorComponents((sep) => sep.setDivider(true))
-        .addTextDisplayComponents((text) => text.setContent('-# Seylun • Stable Build'));
+        .addTextDisplayComponents((text) => text.setContent('\-# \ • Stable Build'));
 
-      return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => { });
+      return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
     }
 
     if (command === 'avatar') {
@@ -777,7 +871,7 @@ client.on('messageCreate', async (message) => {
           gallery.addItems((item) => item.setURL(user.displayAvatarURL({ size: 1024, dynamic: true })))
         );
 
-      return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => { });
+      return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
     }
 
     if (command === 'userinfo') {
@@ -797,9 +891,9 @@ client.on('messageCreate', async (message) => {
           )
         )
         .addSeparatorComponents((sep) => sep.setDivider(true))
-        .addTextDisplayComponents((text) => text.setContent('-# Seylun • Stable Build'));
+        .addTextDisplayComponents((text) => text.setContent('\-# \ • Stable Build'));
 
-      return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => { });
+      return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
     }
 
     if (command === 'uptime') {
@@ -830,9 +924,28 @@ client.on('messageCreate', async (message) => {
           (text) => text.setContent(`I have been online for **${parts.join(', ')}**`)
         )
         .addSeparatorComponents((sep) => sep.setDivider(true))
-        .addTextDisplayComponents((text) => text.setContent('-# Seylun • Stable Build'));
+        .addTextDisplayComponents((text) => text.setContent(`-# ${client.user.username} • Stable Build`));
 
-      return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => { });
+      return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
+    }
+
+    if (command === 'ping') {
+      const sent = await message.reply('🏓 Pinging...').catch(() => null);
+      if (!sent) return;
+
+      const latency = sent.createdTimestamp - message.createdTimestamp;
+      const apiLatency = Math.round(client.ws.ping);
+
+      const container = new ContainerBuilder()
+        .setAccentColor(0x2b2d31)
+        .addTextDisplayComponents(
+          (text) => text.setContent('**🏓 Pong!**'),
+          (text) => text.setContent(`⚡ **Latency:** ${latency}ms\n📡 **API Latency:** ${apiLatency}ms`)
+        )
+        .addSeparatorComponents((sep) => sep.setDivider(true))
+        .addTextDisplayComponents((text) => text.setContent(`-# ${client.user.username} • Stable Build`));
+
+      return sent.edit({ content: '', components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => { });
     }
 
     // ===================== AFK COMMANDS ===================== //
@@ -879,9 +992,9 @@ client.on('messageCreate', async (message) => {
           (text) => text.setContent(`You are now marked as AFK.\n**Reason:** ${reason}`)
         )
         .addSeparatorComponents((sep) => sep.setDivider(true))
-        .addTextDisplayComponents((text) => text.setContent('-# Seylun • AFK System'));
+        .addTextDisplayComponents((text) => text.setContent('\-# \ • AFK System'));
 
-      return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => { });
+      return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
     }
 
     if (command === 'afklb') {
@@ -927,7 +1040,7 @@ client.on('messageCreate', async (message) => {
           )
         );
 
-      const sent = await message.reply({ components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => null);
+      const sent = await message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => null);
       if (sent) leaderboardPages.set(sent.id, { type: 'afk', page: 0 });
       return;
     }
@@ -984,7 +1097,7 @@ client.on('messageCreate', async (message) => {
           )
         );
 
-      const sent = await message.reply({ components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => null);
+      const sent = await message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => null);
       if (sent) leaderboardPages.set(sent.id, { type: 'msg', page: 0 });
       return;
     }
@@ -1218,9 +1331,9 @@ client.on('messageCreate', async (message) => {
             (text) => text.setContent(`**Translated Text:**\n${translated}`)
           )
           .addSeparatorComponents((sep) => sep.setDivider(true))
-          .addTextDisplayComponents((text) => text.setContent('-# Seylun • Translate Engine'));
+          .addTextDisplayComponents((text) => text.setContent('\-# \ • Translate Engine'));
 
-        return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => { });
+        return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
       } catch (err) {
         console.error('Translate error:', err);
         return message.reply('Translation failed. API might be down.').catch(() => { });
@@ -1281,7 +1394,7 @@ client.on('messageCreate', async (message) => {
         .addSeparatorComponents((sep) => sep.setDivider(true))
         .addTextDisplayComponents((text) => text.setContent('-# Blacklist System'));
 
-      return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => { });
+      return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
     }
 
     if (command === 'changemood') {
@@ -1313,42 +1426,27 @@ client.on('messageCreate', async (message) => {
 
     if (command === 'help') {
       try {
+        const botName = client.user.username;
         const container = new ContainerBuilder()
           .setAccentColor(0x2b2d31)
           .addTextDisplayComponents(
-            (text) => text.setContent('**📁 Bot Categories**'),
+            (text) => text.setContent(`**📚 ${botName} Help Menu**`),
             (text) => text.setContent(
               [
-                'Prefix: ,',
+                '**Prefix:** `,`',
                 '',
-                'Utility | AFK | Leaderboard | Fun | Moderation | Owner'
+                '🛠️ **Utility** • 🕒 **AFK** • 🏆 **Leaderboard**',
+                '🎉 **Fun** • 🛡️ **Moderation** • 👑 **Owner**',
+                '',
+                '*Select a category below to view commands*'
               ].join('\n')
             )
           )
           .addSeparatorComponents((sep) => sep.setDivider(true))
-          .addActionRowComponents((row) =>
-            row.addComponents(
-              new StringSelectMenuBuilder()
-                .setCustomId('help-menu')
-                .setPlaceholder('Select a category')
-                .addOptions(
-                  { label: 'Utility', value: 'utility', description: 'Utility commands' },
-                  { label: 'AFK', value: 'afk', description: 'AFK system commands' },
-                  { label: 'Leaderboard', value: 'leaderboard', description: 'Leaderboard commands' },
-                  { label: 'Fun', value: 'fun', description: 'Fun commands' },
-                  { label: 'Moderation', value: 'moderation', description: 'Moderation commands' },
-                  { label: 'Owner', value: 'owner', description: 'Owner-only commands' }
-                )
-            )
-          )
-          .addTextDisplayComponents((text) => text.setContent('-# Seylun • Stable Build'));
+          .addActionRowComponents((row) => row.addComponents(createHelpDropdown()))
+          .addTextDisplayComponents((text) => text.setContent(`-# ${botName} • Stable Build`));
 
-        return message
-          .reply({
-            components: [container],
-            flags: MessageFlags.IsComponentsV2
-          })
-          .catch(() => { });
+        return sendContainer(message, container);
       } catch (err) {
         console.error('Error sending help menu:', err);
       }
@@ -1366,76 +1464,8 @@ client.on('interactionCreate', async (interaction) => {
     // HELP MENU (wide layout)
     // ============================================================
     if (interaction.isStringSelectMenu() && interaction.customId === 'help-menu') {
-      const value = interaction.values[0];
-      const botName = client.user.username;
-
-      const buildContainer = (title, commands) => {
-        const commandList = commands.map(cmd => `**${cmd.name}** - ${cmd.desc}`).join('\n');
-        return new ContainerBuilder()
-          .setAccentColor(0x2b2d31)
-          .addTextDisplayComponents(
-            (text) => text.setContent(`**${title}**`),
-            (text) => text.setContent(commandList)
-          )
-          .addSeparatorComponents((sep) => sep.setDivider(true))
-          .addTextDisplayComponents((text) => text.setContent(`-# ${botName} • Help System`));
-      };
-
-      let container;
-
-      if (value === 'fun') {
-        container = buildContainer('🎉 Fun Commands', [
-          { name: ',roast', desc: 'Roast a user' },
-          { name: ',lore', desc: 'Generate chaotic lore' },
-          { name: ',av', desc: 'Strawberry spam' },
-          { name: ',cat', desc: 'Random cat image' },
-          { name: ',dog', desc: 'Random dog image' },
-          { name: ',bird', desc: 'Random bird image' },
-          { name: ',fact', desc: 'Useless fact of the day' }
-        ]);
-      } else if (value === 'utility') {
-        container = buildContainer('🛠️ Utility Commands', [
-          { name: ',info', desc: 'Bot info' },
-          { name: ',avatar', desc: 'User avatar' },
-          { name: ',userinfo', desc: 'User details' },
-          { name: ',translate', desc: 'Translate a user message' },
-          { name: ',uptime', desc: 'Bot uptime' }
-        ]);
-      } else if (value === 'afk') {
-        container = buildContainer('🕒 AFK Commands', [
-          { name: ',afk', desc: 'Set AFK status' },
-          { name: ',afklb', desc: 'AFK leaderboard' }
-        ]);
-      } else if (value === 'leaderboard') {
-        container = buildContainer('🏆 Leaderboard Commands', [
-          { name: ',msglb', desc: 'Message leaderboard' },
-          { name: ',afklb', desc: 'AFK leaderboard' }
-        ]);
-      } else if (value === 'moderation') {
-        container = buildContainer('🛡️ Moderation Commands', [
-          { name: ',kick', desc: 'Kick a user' },
-          { name: ',ban', desc: 'Ban a user' },
-          { name: ',clear', desc: 'Bulk delete messages' },
-          { name: ',purgeuser', desc: 'Delete user messages' },
-          { name: ',lock', desc: 'Lock channel' },
-          { name: ',unlock', desc: 'Unlock channel' },
-          { name: ',timeout', desc: 'Timeout a user' },
-          { name: ',mute', desc: 'Mute a user' },
-          { name: ',unmute', desc: 'Unmute a user' }
-        ]);
-      } else if (value === 'owner') {
-        container = buildContainer('👑 Owner Commands', [
-          { name: ',blacklist', desc: 'Block user' },
-          { name: ',unblacklist', desc: 'Unblock user' },
-          { name: ',blacklistcheck', desc: 'View blacklist' },
-          { name: ',forceban', desc: 'Ban by ID' },
-          { name: ',forcekick', desc: 'Kick instantly' },
-          { name: ',changemood', desc: 'Set bot mood' },
-          { name: ',setstatus', desc: 'Set bot status' },
-          { name: ',servers', desc: 'View servers + invites' }
-        ]);
-      }
-
+      const container = buildCategoryContainer(interaction.values[0], client.user.username);
+      if (!container) return;
       return interaction.update({ components: [container], flags: MessageFlags.IsComponentsV2 });
     }
 
