@@ -698,27 +698,74 @@ if (command === "pokemon") {
   try {
     const id = Math.floor(Math.random() * 1025) + 1;
     const response = await fetch("https://pokeapi.co/api/v2/pokemon/" + id);
-    
     if (!response.ok) throw new Error("API error");
-    
+
     const data = await response.json();
     const name = data.name.charAt(0).toUpperCase() + data.name.slice(1);
-    const sprite = data.sprites.other["official-artwork"].front_default 
-      || data.sprites.front_default 
-      || "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + id + ".png";
+
+    // 20% shiny chance
+    const isShiny = Math.random() < 0.20;
+
+    // Get species → evolution chain
+    const speciesRes = await fetch(data.species.url);
+    const species = await speciesRes.json();
+
+    const evoRes = await fetch(species.evolution_chain.url);
+    const evoData = await evoRes.json();
+
+    // Extract full evolution line
+    const evoLine = [];
+    let evoNode = evoData.chain;
+
+    while (evoNode) {
+      evoLine.push(evoNode.species.name);
+      evoNode = evoNode.evolves_to[0];
+    }
+
+    // Fetch all evolution Pokémon in parallel (MUCH FASTER)
+    const evoDataList = await Promise.all(
+      evoLine.map(name =>
+        fetch("https://pokeapi.co/api/v2/pokemon/" + name).then(r => r.json())
+      )
+    );
+
+    // Build sprite list
+    const evoSprites = evoDataList.map(evo => {
+      const sprite = isShiny
+        ? (evo.sprites.other["official-artwork"].front_shiny || evo.sprites.front_shiny)
+        : (evo.sprites.other["official-artwork"].front_default || evo.sprites.front_default);
+
+      return {
+        name: evo.name.charAt(0).toUpperCase() + evo.name.slice(1),
+        sprite
+      };
+    });
+
+    const title = isShiny
+      ? "## ✨ A **SHINY " + name + "** appeared!"
+      : "## A wild **" + name + "** appeared!";
+
+    const gallery = new MediaGalleryBuilder();
+    for (const evo of evoSprites) {
+      gallery.addItems(
+        new MediaGalleryItemBuilder().setURL(evo.sprite)
+      );
+    }
 
     const container = new ContainerBuilder()
       .addTextDisplayComponents(
-        new TextDisplayBuilder().setContent("## A wild **" + name + "** appeared!")
+        new TextDisplayBuilder().setContent(title)
       )
       .addSeparatorComponents(
         new SeparatorBuilder()
           .setSpacing(SeparatorSpacingSize.Small)
           .setDivider(true)
       )
-      .addMediaGalleryComponents(
-        new MediaGalleryBuilder().addItems(
-          new MediaGalleryItemBuilder().setURL(sprite)
+      .addMediaGalleryComponents(gallery)
+      .addTextDisplayComponents(
+        new TextDisplayBuilder().setContent(
+          "**Evolution Line:** " +
+          evoSprites.map(e => e.name).join(" → ")
         )
       )
       .addTextDisplayComponents(
@@ -736,6 +783,8 @@ if (command === "pokemon") {
     await message.reply("Failed to load a Pokémon.");
   }
 }
+
+
 
 if (message.content.toLowerCase() === ",serverinfo") {
     const guild = message.guild;
@@ -995,7 +1044,7 @@ if (message.content.startsWith(",dm")) {
           (text) => text.setContent(`<@${target.id}> ${roast}`)
         )
         .addSeparatorComponents((sep) => sep.setDivider(true))
-        .addTextDisplayComponents((text) => text.setContent('\-# \ • Stable Build'));
+        .addTextDisplayComponents((text) => text.setContent(''));
 
       return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
     }
@@ -1011,7 +1060,7 @@ if (message.content.startsWith(",dm")) {
           (text) => text.setContent(`<@${target.id}> ${lore}`)
         )
         .addSeparatorComponents((sep) => sep.setDivider(true))
-        .addTextDisplayComponents((text) => text.setContent('\-# \ • Lore Engine'));
+        .addTextDisplayComponents((text) => text.setContent(''));
 
       return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
     }
@@ -1033,7 +1082,7 @@ if (message.content.startsWith(",dm")) {
             gallery.addItems((item) => item.setURL(img))
           )
           .addSeparatorComponents((sep) => sep.setDivider(true))
-          .addTextDisplayComponents((text) => text.setContent('\-# \ • Stable Build'));
+          .addTextDisplayComponents((text) => text.setContent(''));
 
         return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
       } catch {
@@ -1054,7 +1103,7 @@ if (message.content.startsWith(",dm")) {
             gallery.addItems((item) => item.setURL(img))
           )
           .addSeparatorComponents((sep) => sep.setDivider(true))
-          .addTextDisplayComponents((text) => text.setContent('\-# \ • Stable Build'));
+          .addTextDisplayComponents((text) => text.setContent(''));
 
         return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
       } catch {
@@ -1075,7 +1124,7 @@ if (message.content.startsWith(",dm")) {
             gallery.addItems((item) => item.setURL(img))
           )
           .addSeparatorComponents((sep) => sep.setDivider(true))
-          .addTextDisplayComponents((text) => text.setContent('\-# \ • Stable Build'));
+          .addTextDisplayComponents((text) => text.setContent(''));
 
         return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
       } catch {
@@ -1115,7 +1164,7 @@ if (message.content.startsWith(",dm")) {
             (text) => text.setContent(fallback[Math.floor(Math.random() * fallback.length)])
           )
           .addSeparatorComponents((sep) => sep.setDivider(true))
-          .addTextDisplayComponents((text) => text.setContent('\-# \ • Stable Build'));
+          .addTextDisplayComponents((text) => text.setContent(''));
 
         return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
       }
@@ -1212,7 +1261,7 @@ if (message.content.startsWith(",dm")) {
           )
         )
         .addSeparatorComponents((sep) => sep.setDivider(true))
-        .addTextDisplayComponents((text) => text.setContent('\-# \ • Stable Build'));
+        .addTextDisplayComponents((text) => text.setContent(''));
 
       return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
     }
@@ -1283,7 +1332,7 @@ if (message.content.startsWith(",dm")) {
           (text) => text.setContent(`I have been online for **${parts.join(', ')}**`)
         )
         .addSeparatorComponents((sep) => sep.setDivider(true))
-        .addTextDisplayComponents((text) => text.setContent(`-# ${client.user.username} • Stable Build`));
+        .addTextDisplayComponents((text) => text.setContent(`-# ${client.user.username}`));
 
       return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
     }
@@ -1302,59 +1351,64 @@ if (message.content.startsWith(",dm")) {
           (text) => text.setContent(`⚡ **Latency:** ${latency}ms\n📡 **API Latency:** ${apiLatency}ms`)
         )
         .addSeparatorComponents((sep) => sep.setDivider(true))
-        .addTextDisplayComponents((text) => text.setContent(`-# ${client.user.username} • Stable Build`));
+        .addTextDisplayComponents((text) => text.setContent(`-# ${client.user.username}`));
 
       return sent.edit({ content: '', components: [container], flags: MessageFlags.IsComponentsV2 }).catch(() => { });
     }
 
     // ===================== AFK COMMANDS ===================== //
 
-    if (command === 'afk') {
-      const reason = args.join(' ') || 'AFK';
+ if (command === 'afk') {
+  const reason = args.join(' ') || 'AFK';
 
-      const now = Date.now();
-      const userId = message.author.id;
+  const now = Date.now();
+  const userId = message.author.id;
 
-      if (afkActive.has(userId)) {
-        return message.reply('You are already marked as AFK.').catch(() => { });
+  if (afkActive.has(userId)) {
+    return message.reply('You are already marked as AFK.').catch(() => { });
+  }
+
+  let originalNickname = null;
+  let hadNicknameChange = false;
+
+  try {
+    const member = await message.guild.members.fetch(userId).catch(() => null);
+    if (member && member.manageable) {
+      originalNickname = member.nickname || member.user.username;
+
+      if (!originalNickname.toLowerCase().includes('[afk]')) {
+        const newNick = `[AFK] ${originalNickname}`;
+        await member.setNickname(newNick).catch(() => { });
+        hadNicknameChange = true;
       }
-
-      let originalNickname = null;
-      let hadNicknameChange = false;
-
-      try {
-        const member = await message.guild.members.fetch(userId).catch(() => null);
-        if (member && member.manageable) {
-          originalNickname = member.nickname || member.user.username;
-
-          if (!originalNickname.toLowerCase().includes('[afk]')) {
-            const newNick = `[AFK] ${originalNickname}`;
-            await member.setNickname(newNick).catch(() => { });
-            hadNicknameChange = true;
-          }
-        }
-      } catch {
-        // ignore nickname errors
-      }
-
-      afkActive.set(userId, {
-        since: now,
-        reason,
-        originalNickname,
-        hadNicknameChange
-      });
-
-      const container = new ContainerBuilder()
-        .setAccentColor(0x2b2d31)
-        .addTextDisplayComponents(
-          (text) => text.setContent('**🕒 AFK Enabled**'),
-          (text) => text.setContent(`You are now marked as AFK.\n**Reason:** ${reason}`)
-        )
-        .addSeparatorComponents((sep) => sep.setDivider(true))
-        .addTextDisplayComponents((text) => text.setContent('\-# \ • AFK System'));
-
-      return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
     }
+  } catch {}
+
+  afkActive.set(userId, {
+    since: now,
+    reason,
+    originalNickname,
+    hadNicknameChange
+  });
+
+  const container = new ContainerBuilder()
+    .setAccentColor(0x2b2d31)
+    .addTextDisplayComponents(
+      (text) => text.setContent('**🕒 AFK Enabled**'),
+      (text) => text.setContent(`You are now marked as AFK.\n**Reason:** ${reason}`)
+    )
+    .addSeparatorComponents((sep) => sep.setDivider(true))
+    .addTextDisplayComponents(
+      (text) => text.setContent('-# AFK System')
+    );
+
+  return message.reply({
+    components: [container],
+    flags: MessageFlags.IsComponentsV2,
+    allowedMentions: { repliedUser: false }
+  }).catch(() => {});
+}
+
 
     if (command === 'afklb') {
       const entries = Array.from(afkTotals.entries())
@@ -1690,7 +1744,7 @@ if (message.content.startsWith(",dm")) {
             (text) => text.setContent(`**Translated Text:**\n${translated}`)
           )
           .addSeparatorComponents((sep) => sep.setDivider(true))
-          .addTextDisplayComponents((text) => text.setContent('\-# \ • Translate Engine'));
+          .addTextDisplayComponents((text) => text.setContent(''));
 
         return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2, allowedMentions: { repliedUser: false } }).catch(() => { });
       } catch (err) {
@@ -1805,7 +1859,8 @@ if (command === 'blacklistcheck') {
       (text) => text.setContent(list)
     )
     .addSeparatorComponents((sep) => sep.setDivider(true))
-    .addTextDisplayComponents((text) => text.setContent('-# Blacklist System'));
+          .addTextDisplayComponents((text) => text.setContent(''));
+   
 
   return message.reply({
     components: [container],
