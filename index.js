@@ -710,6 +710,66 @@ I’m Seylun the developer of this bot i love food and sleep i also love playing
       }).catch(() => { });
     }
 
+if (command === "spotify") {
+  const target = message.mentions.users.first() || message.author;
+
+  const presence = target.presence;
+  const activity = presence?.activities?.find(a => a.type === 2 && a.name === "Spotify");
+
+  // Minimal grey placeholder image
+  const placeholderArt = "https://i.imgur.com/4M34hi2.png";
+
+  if (!activity) {
+    const container = new ContainerBuilder()
+      .setAccentColor(0x1DB954)
+      .addTextDisplayComponents(
+        (text) => text.setContent(`## 🎧 Spotify Status for ${target.username}`),
+        (text) => text.setContent(`This user is **not listening to Spotify** right now.`)
+      )
+      .addSeparatorComponents((sep) => sep.setDivider(true))
+      .addTextDisplayComponents(
+        (text) => text.setContent("-# Spotify Presence System")
+      );
+
+    return message.reply({
+      components: [container],
+      flags: MessageFlags.IsComponentsV2,
+      allowedMentions: { repliedUser: false }
+    }).catch(() => {});
+  }
+
+  const track = activity.details || "Unknown Track";
+  const artist = activity.state || "Unknown Artist";
+  const album = activity.assets?.largeText || "Unknown Album";
+  const albumArt = activity.assets?.largeImageURL() || placeholderArt;
+
+  const container = new ContainerBuilder()
+    .setAccentColor(0x1DB954)
+    .addMediaGalleryComponents(
+      (gallery) =>
+        gallery.addItems(
+          new MediaGalleryItemBuilder()
+            .setSrc(albumArt)
+            .setAlt("Album Art")
+        )
+    )
+    .addTextDisplayComponents(
+      (text) => text.setContent(`## 🎧 Now Playing on Spotify`),
+      (text) => text.setContent(`**Track:** ${track}`),
+      (text) => text.setContent(`**Artist:** ${artist}`),
+      (text) => text.setContent(`**Album:** ${album}`)
+    )
+    .addSeparatorComponents((sep) => sep.setDivider(true))
+    .addTextDisplayComponents(
+      (text) => text.setContent(`Listening as **${target.username}**`)
+    );
+
+  return message.reply({
+    components: [container],
+    flags: MessageFlags.IsComponentsV2,
+    allowedMentions: { repliedUser: false }
+  }).catch(() => {});
+}
 
 
 if (command === "prophecy") {
@@ -2128,6 +2188,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
