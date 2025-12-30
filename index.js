@@ -25,7 +25,7 @@ let lastRestartChannel = null;
 
 /* ===================== CONFIG ===================== */
 
-const PREFIX = 'b!';
+const PREFIX = ',';
 const MSG_FILE = './msgData.json';
 const AFK_FILE = './afkData.json';
 const MEMORY_FILE = './chatMemory.json';
@@ -2082,4 +2082,5 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
