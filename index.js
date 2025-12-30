@@ -249,7 +249,7 @@ client.once('clientReady', () => {
   client.user.setPresence({
     activities: [
       {
-        name: 'Ninja V2 Commands | ,2help',
+        name: 'Ninja V2 Commands | ,help',
         type: ActivityType.Playing
       }
     ],
@@ -2082,3 +2082,4 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
