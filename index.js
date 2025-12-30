@@ -709,139 +709,6 @@ I’m Seylun the developer of this bot i love food and sleep i also love playing
       }).catch(() => { });
     }
 
-if (command === "wyr") {
-  const nouns = [
-    "a dragon", "a robot", "your clone", "a ghost", "a celebrity",
-    "your future self", "your past self", "a giant duck", "an alien",
-    "a talking cat", "a demon", "a wizard", "a billionaire", "a pirate"
-  ];
-
-  const actions = [
-    "fight", "hug", "swap lives with", "babysit", "race against",
-    "be roommates with", "teach", "run from", "team up with",
-    "argue with", "cook for", "sing with", "battle", "prank"
-  ];
-
-  const scenarios = [
-    "for 24 hours", "for a week", "forever", "in a haunted house",
-    "on live TV", "in Minecraft", "in real life", "in VR",
-    "while blindfolded", "with no context", "with superpowers",
-    "with no sleep", "during a storm", "in space"
-  ];
-
-  function randomWYR() {
-    const a = `${actions[Math.floor(Math.random() * actions.length)]} ${nouns[Math.floor(Math.random() * nouns.length)]} ${scenarios[Math.floor(Math.random() * scenarios.length)]}`;
-    const b = `${actions[Math.floor(Math.random() * actions.length)]} ${nouns[Math.floor(Math.random() * nouns.length)]} ${scenarios[Math.floor(Math.random() * scenarios.length)]}`;
-    return { a, b };
-  }
-
-  let q = randomWYR();
-  let votesA = 0;
-  let votesB = 0;
-
-  function buildContainer() {
-    return new ContainerBuilder()
-      .addTextDisplayComponents(
-        new TextDisplayBuilder().setContent("## Would You Rather?")
-      )
-      .addSeparatorComponents(
-        new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
-      )
-      .addTextDisplayComponents(
-        new TextDisplayBuilder().setContent(`**A:** ${q.a}`)
-      )
-      .addTextDisplayComponents(
-        new TextDisplayBuilder().setContent(`**B:** ${q.b}`)
-      )
-      .addSeparatorComponents(
-        new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
-      )
-      .addButtonComponents(
-        new ButtonBuilder()
-          .setCustomId("wyr_a")
-          .setLabel("Choose A")
-          .setStyle(ButtonStyle.Primary)
-      )
-      .addButtonComponents(
-        new ButtonBuilder()
-          .setCustomId("wyr_b")
-          .setLabel("Choose B")
-          .setStyle(ButtonStyle.Danger)
-      )
-      .addButtonComponents(
-        new ButtonBuilder()
-          .setCustomId("wyr_reroll")
-          .setLabel("Reroll")
-          .setStyle(ButtonStyle.Secondary)
-      );
-  }
-
-  const msg = await message.reply({
-    components: [buildContainer()],
-    flags: MessageFlags.IsComponentsV2 | MessageFlags.IsPersistent
-  });
-
-  const collector = msg.createMessageComponentCollector({ time: 60000 });
-
-  collector.on("collect", async (i) => {
-    if (i.user.id !== message.author.id)
-      return i.reply({ content: "Only the command user can vote.", ephemeral: true });
-
-    if (i.customId === "wyr_a") votesA++;
-    if (i.customId === "wyr_b") votesB++;
-
-    if (i.customId === "wyr_reroll") {
-      q = randomWYR();
-      votesA = 0;
-      votesB = 0;
-
-      return i.update({
-        components: [buildContainer()],
-        flags: MessageFlags.IsComponentsV2 | MessageFlags.IsPersistent
-      });
-    }
-
-    const updated = new ContainerBuilder()
-      .addTextDisplayComponents(
-        new TextDisplayBuilder().setContent("## Would You Rather?")
-      )
-      .addSeparatorComponents(
-        new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
-      )
-      .addTextDisplayComponents(
-        new TextDisplayBuilder().setContent(`**A:** ${q.a} — ${votesA} votes`)
-      )
-      .addTextDisplayComponents(
-        new TextDisplayBuilder().setContent(`**B:** ${q.b} — ${votesB} votes`)
-      )
-      .addSeparatorComponents(
-        new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
-      )
-      .addButtonComponents(
-        new ButtonBuilder()
-          .setCustomId("wyr_a")
-          .setLabel("Choose A")
-          .setStyle(ButtonStyle.Primary)
-      )
-      .addButtonComponents(
-        new ButtonBuilder()
-          .setCustomId("wyr_b")
-          .setLabel("Choose B")
-          .setStyle(ButtonStyle.Danger)
-      )
-      .addButtonComponents(
-        new ButtonBuilder()
-          .setCustomId("wyr_reroll")
-          .setLabel("Reroll")
-          .setStyle(ButtonStyle.Secondary)
-      );
-
-    await i.update({
-      components: [updated],
-      flags: MessageFlags.IsComponentsV2 | MessageFlags.IsPersistent
-    });
-  });
-}
 
 
 
@@ -2189,6 +2056,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
