@@ -236,6 +236,7 @@ export function startWebserver(client) {
 }
 
 function formatUptime(ms) {
+  if (!ms || ms <= 0) return '0d 0h 0m';
   const seconds = Math.floor((ms / 1000) % 60);
   const minutes = Math.floor((ms / (1000 * 60)) % 60);
   const hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
