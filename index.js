@@ -709,7 +709,6 @@ I’m Seylun the developer of this bot i love food and sleep i also love playing
       }).catch(() => { });
     }
 
-
 if (command === "wyr") {
   const nouns = [
     "a dragon", "a robot", "your clone", "a ghost", "a celebrity",
@@ -740,34 +739,50 @@ if (command === "wyr") {
   let votesA = 0;
   let votesB = 0;
 
-  const row = new client.discord.ActionRowBuilder().addComponents(
-    new client.discord.ButtonBuilder()
-      .setCustomId("wyr_a")
-      .setLabel("Option A")
-      .setStyle(client.discord.ButtonStyle.Primary),
-
-    new client.discord.ButtonBuilder()
-      .setCustomId("wyr_b")
-      .setLabel("Option B")
-      .setStyle(client.discord.ButtonStyle.Danger),
-
-    new client.discord.ButtonBuilder()
-      .setCustomId("wyr_reroll")
-      .setLabel("Reroll")
-      .setStyle(client.discord.ButtonStyle.Secondary)
-  );
+  const container = () =>
+    new ContainerBuilder()
+      .addTextDisplayComponents(
+        new TextDisplayBuilder().setContent("## Would You Rather?")
+      )
+      .addSeparatorComponents(
+        new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
+      )
+      .addTextDisplayComponents(
+        new TextDisplayBuilder().setContent(`**A:** ${q.a}`)
+      )
+      .addTextDisplayComponents(
+        new TextDisplayBuilder().setContent(`**B:** ${q.b}`)
+      )
+      .addSeparatorComponents(
+        new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
+      )
+      .addActionRowComponents(
+        new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
+            .setCustomId("wyr_a")
+            .setLabel("Choose A")
+            .setStyle(ButtonStyle.Primary),
+          new ButtonBuilder()
+            .setCustomId("wyr_b")
+            .setLabel("Choose B")
+            .setStyle(ButtonStyle.Danger),
+          new ButtonBuilder()
+            .setCustomId("wyr_reroll")
+            .setLabel("Reroll")
+            .setStyle(ButtonStyle.Secondary)
+        )
+      );
 
   const msg = await message.reply({
-    content: `**Would You Rather?**\n\n**A:** ${q.a}\n**B:** ${q.b}`,
-    components: [row]
+    components: [container()],
+    flags: MessageFlags.IsComponentsV2 | MessageFlags.IsPersistent
   });
 
   const collector = msg.createMessageComponentCollector({ time: 60000 });
 
   collector.on("collect", async (i) => {
-    if (i.user.id !== message.author.id) {
+    if (i.user.id !== message.author.id)
       return i.reply({ content: "Only the command user can vote.", ephemeral: true });
-    }
 
     if (i.customId === "wyr_a") votesA++;
     if (i.customId === "wyr_b") votesB++;
@@ -778,23 +793,50 @@ if (command === "wyr") {
       votesB = 0;
 
       return i.update({
-        content: `**Would You Rather?**\n\n**A:** ${q.a}\n**B:** ${q.b}`,
-        components: [row]
+        components: [container()],
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.IsPersistent
       });
     }
 
-    i.update({
-      content: `**Would You Rather?**\n\n**A:** ${q.a} — **${votesA} votes**\n**B:** ${q.b} — **${votesB} votes**`,
-      components: [row]
+    const updated = new ContainerBuilder()
+      .addTextDisplayComponents(
+        new TextDisplayBuilder().setContent("## Would You Rather?")
+      )
+      .addSeparatorComponents(
+        new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
+      )
+      .addTextDisplayComponents(
+        new TextDisplayBuilder().setContent(`**A:** ${q.a} — ${votesA} votes`)
+      )
+      .addTextDisplayComponents(
+        new TextDisplayBuilder().setContent(`**B:** ${q.b} — ${votesB} votes`)
+      )
+      .addSeparatorComponents(
+        new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
+      )
+      .addActionRowComponents(
+        new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
+            .setCustomId("wyr_a")
+            .setLabel("Choose A")
+            .setStyle(ButtonStyle.Primary),
+          new ButtonBuilder()
+            .setCustomId("wyr_b")
+            .setLabel("Choose B")
+            .setStyle(ButtonStyle.Danger),
+          new ButtonBuilder()
+            .setCustomId("wyr_reroll")
+            .setLabel("Reroll")
+            .setStyle(ButtonStyle.Secondary)
+        )
+      );
+
+    await i.update({
+      components: [updated],
+      flags: MessageFlags.IsComponentsV2 | MessageFlags.IsPersistent
     });
   });
-
-  collector.on("end", () => {
-    row.components.forEach((btn) => btn.setDisabled(true));
-    msg.edit({ components: [row] });
-  });
 }
-
 
 
 
@@ -2141,6 +2183,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
