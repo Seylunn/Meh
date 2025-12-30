@@ -25,6 +25,7 @@ import {
   MediaGalleryBuilder,
   MediaGalleryItemBuilder,
   SeparatorSpacingSize,
+  ActionRowBuilder,
   MessageFlags
 } from 'discord.js';
 import fetch from 'node-fetch';
@@ -2183,6 +2184,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
