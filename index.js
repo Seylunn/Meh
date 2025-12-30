@@ -710,98 +710,147 @@ I’m Seylun the developer of this bot i love food and sleep i also love playing
     }
 
 
-if (command === "spotify") {
-  const user = message.mentions.users.first() || message.author;
-  const member = message.guild.members.cache.get(user.id);
+if (command === "predictdeath") {
+  const target = message.mentions.users.first() || message.author;
 
-  const activity = member?.presence?.activities.find(
-    a => a.name === "Spotify" && a.type === 2
-  );
+  // Randomized fictional prophecy data
+  const causes = [
+    "being consumed by a rogue timeline",
+    "accidentally opening a forbidden portal",
+    "getting caught in a paradox loop",
+    "being erased by a corrupted memory fragment",
+    "colliding with an alternate version of yourself",
+    "being chosen as a sacrifice by the Algorithm Council",
+    "falling into a glitch in reality",
+    "being overwritten by a newer patch of the universe",
+    "touching an unidentified cosmic object",
+    "being absorbed into the background simulation"
+  ];
 
-  if (!activity) {
-    const notListening = new ContainerBuilder()
-      .addTextDisplayComponents(
-        new TextDisplayBuilder().setContent(
-          `⚠️ ${user.username} is not listening to Spotify right now.`
-        )
-      );
+  const locations = [
+    "in the Neon Wastelands",
+    "inside the Backrooms (Level 94)",
+    "during a temporal storm",
+    "in a forgotten server shard",
+    "inside a corrupted dream",
+    "at the edge of the rendered world",
+    "in a pocket dimension",
+    "inside a malfunctioning timeline",
+    "beneath the simulation core",
+    "in the void between frames"
+  ];
 
-    return message.reply({
-      components: [notListening],
-      flags: MessageFlags.IsComponentsV2
-    });
-  }
+  const warnings = [
+    "avoid mirrors for the next 72 hours",
+    "do not trust anyone who speaks in riddles",
+    "stay away from glitching shadows",
+    "ignore whispers coming from behind you",
+    "do not interact with your alternate selves",
+    "avoid all doors that weren’t there yesterday",
+    "do not accept mysterious gifts",
+    "stay away from unstable timelines",
+    "avoid looking directly at cosmic anomalies",
+    "do not acknowledge the entity watching you"
+  ];
 
-  const track = activity.details || "Unknown Track";
-  const artist = activity.state || "Unknown Artist";
-  const album = activity.assets?.largeText || "Unknown Album";
-  const albumArt = activity.assets?.largeImageURL();
-  const trackId = activity.syncId;
+  const dates = [
+    "in 3 cycles",
+    "next Tuesday but not this timeline’s Tuesday",
+    "when the moon flickers",
+    "after the next system reboot",
+    "once the simulation updates",
+    "during the next cosmic desync",
+    "when your shadow stops following you",
+    "after the 7th glitch event",
+    "when the clocks refuse to tick",
+    "once the veil thins"
+  ];
 
-  const start = activity.timestamps?.start;
-  const end = activity.timestamps?.end;
-
-  const progress = start && end
-    ? Math.floor(
-        ((Date.now() - start.getTime()) /
-          (end.getTime() - start.getTime())) *
-          100
-      )
-    : null;
+  const cause = causes[Math.floor(Math.random() * causes.length)];
+  const location = locations[Math.floor(Math.random() * locations.length)];
+  const warning = warnings[Math.floor(Math.random() * warnings.length)];
+  const date = dates[Math.floor(Math.random() * dates.length)];
 
   const container = new ContainerBuilder()
     .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(`## 🎵 Spotify — ${user.username}`)
+      new TextDisplayBuilder().setContent(`## 🔮 Prophecy for ${target.username}`)
     )
     .addSeparatorComponents(
-      new SeparatorBuilder()
-        .setSpacing(SeparatorSpacingSize.Small)
-        .setDivider(true)
+      new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
     )
     .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(`**Track:** ${track}`)
+      new TextDisplayBuilder().setContent(`**Cause:** ${cause}`)
     )
     .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(`**Artist:** ${artist}`)
+      new TextDisplayBuilder().setContent(`**Location:** ${location}`)
     )
     .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(`**Album:** ${album}`)
-    );
-
-  if (albumArt) {
-    container.addMediaGalleryComponents(
-      new MediaGalleryBuilder().addItems(
-        new MediaGalleryItemBuilder().setSource(albumArt)
-      )
-    );
-  }
-
-  container.addSeparatorComponents(
-    new SeparatorBuilder()
-      .setSpacing(SeparatorSpacingSize.Small)
-      .setDivider(true)
-  );
-
-  if (progress !== null) {
-    container.addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(`**Progress:** ${progress}%`)
-    );
-  }
-
-  if (trackId) {
-    container.addButtonComponents(
+      new TextDisplayBuilder().setContent(`**Predicted Time:** ${date}`)
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(`**Warning:** ${warning}`)
+    )
+    .addButtonComponents(
       new ButtonBuilder()
-        .setStyle(ButtonStyle.Link)
-        .setLabel("Open in Spotify")
-        .setURL(`https://open.spotify.com/track/${trackId}`)
+        .setCustomId("predictdeath_reroll")
+        .setLabel("Reroll Prophecy")
+        .setStyle(ButtonStyle.Secondary)
     );
-  }
 
-  return message.reply({
+  const msg = await message.reply({
     components: [container],
     flags: MessageFlags.IsComponentsV2 | MessageFlags.IsPersistent
   });
+
+  const collector = msg.createMessageComponentCollector({ time: 60000 });
+
+  collector.on("collect", async (i) => {
+    if (i.customId !== "predictdeath_reroll") return;
+
+    const newCause = causes[Math.floor(Math.random() * causes.length)];
+    const newLocation = locations[Math.floor(Math.random() * locations.length)];
+    const newWarning = warnings[Math.floor(Math.random() * warnings.length)];
+    const newDate = dates[Math.floor(Math.random() * dates.length)];
+
+    const newContainer = new ContainerBuilder()
+      .addTextDisplayComponents(
+        new TextDisplayBuilder().setContent(`## 🔮 Prophecy for ${target.username}`)
+      )
+      .addSeparatorComponents(
+        new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
+      )
+      .addTextDisplayComponents(
+        new TextDisplayBuilder().setContent(`**Cause:** ${newCause}`)
+      )
+      .addTextDisplayComponents(
+        new TextDisplayBuilder().setContent(`**Location:** ${newLocation}`)
+      )
+      .addTextDisplayComponents(
+        new TextDisplayBuilder().setContent(`**Predicted Time:** ${newDate}`)
+      )
+      .addSeparatorComponents(
+        new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
+      )
+      .addTextDisplayComponents(
+        new TextDisplayBuilder().setContent(`**Warning:** ${newWarning}`)
+      )
+      .addButtonComponents(
+        new ButtonBuilder()
+          .setCustomId("predictdeath_reroll")
+          .setLabel("Reroll Prophecy")
+          .setStyle(ButtonStyle.Secondary)
+      );
+
+    await i.update({
+      components: [newContainer],
+      flags: MessageFlags.IsComponentsV2 | MessageFlags.IsPersistent
+    });
+  });
 }
+
 
 
 
@@ -2148,6 +2197,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
