@@ -770,9 +770,17 @@ I’m Seylun the developer of this bot i love food and sleep i also love playing
         // Fetch all evolution Pokémon in parallel (MUCH FASTER)
         const evoDataList = await Promise.all(
           evoLine.map(name =>
-            fetch("https://pokeapi.co/api/v2/pokemon/" + name).then(r => r.json())
+            fetch("https://pokeapi.co/api/v2/pokemon/" + name)
+              .then(r => {
+                if (!r.ok) throw new Error(`Pokemon API error: ${r.status}`);
+                return r.json();
+              })
+              .catch(err => {
+                console.error(`Failed to fetch pokemon ${name}:`, err.message);
+                return null;
+              })
           )
-        );
+        ).then(results => results.filter(Boolean));
 
         // Build sprite list
         const evoSprites = evoDataList.map(evo => {
