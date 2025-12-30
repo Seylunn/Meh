@@ -753,59 +753,30 @@ if (command === "prophecy") {
     "a door opening where none existed"
   ];
 
-  function generate() {
-    return {
-      vision: visions[Math.floor(Math.random() * visions.length)],
-      omen: omens[Math.floor(Math.random() * omens.length)],
-      outcome: outcomes[Math.floor(Math.random() * outcomes.length)]
-    };
-  }
+  const prophecy = {
+    vision: visions[Math.floor(Math.random() * visions.length)],
+    omen: omens[Math.floor(Math.random() * omens.length)],
+    outcome: outcomes[Math.floor(Math.random() * outcomes.length)]
+  };
 
-  let prophecy = generate();
-
-  function buildContainer() {
-    const container = new ContainerBuilder()
-      .setAccentColor(0x2b2d31)
-      .addTextDisplayComponents(
-        (text) => text.setContent(`## 🔮 Prophecy for ${target.username}`),
-        (text) => text.setContent(`**Vision:** ${prophecy.vision}`),
-        (text) => text.setContent(`**Omen:** ${prophecy.omen}`),
-        (text) => text.setContent(`**Outcome:** ${prophecy.outcome}`)
-      )
-      .addSeparatorComponents((sep) => sep.setDivider(true))
-      .addTextDisplayComponents(
-        (text) => text.setContent("-# Prophecy System")
-      );
-
-    container.addButtonComponents(
-      (btn) =>
-        btn
-          .setCustomId("prophecy_reroll")
-          .setLabel("Reveal Another Prophecy")
-          .setStyle(ButtonStyle.Secondary)
+  const container = new ContainerBuilder()
+    .setAccentColor(0x2b2d31)
+    .addTextDisplayComponents(
+      (text) => text.setContent(`## 🔮 Prophecy for ${target.username}`),
+      (text) => text.setContent(`**Vision:** ${prophecy.vision}`),
+      (text) => text.setContent(`**Omen:** ${prophecy.omen}`),
+      (text) => text.setContent(`**Outcome:** ${prophecy.outcome}`)
+    )
+    .addSeparatorComponents((sep) => sep.setDivider(true))
+    .addTextDisplayComponents(
+      (text) => text.setContent("-# Prophecy System")
     );
 
-    return container;
-  }
-
-  const msg = await message.reply({
-    components: [buildContainer()],
+  return message.reply({
+    components: [container],
     flags: MessageFlags.IsComponentsV2,
     allowedMentions: { repliedUser: false }
-  });
-
-  const collector = msg.createMessageComponentCollector({ time: 60000 });
-
-  collector.on("collect", async (i) => {
-    if (i.customId !== "prophecy_reroll") return;
-
-    prophecy = generate();
-
-    await i.update({
-      components: [buildContainer()],
-      flags: MessageFlags.IsComponentsV2
-    });
-  });
+  }).catch(() => {});
 }
 
 
@@ -2156,6 +2127,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
