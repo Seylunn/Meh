@@ -764,7 +764,7 @@ if (command === "aura") {
     `${auraInsight}`;
 
   const container = new ContainerBuilder()
-    .setAccentColor(0xb9bbbe) // light grey accent line
+    .setAccentColor(0x2b2d31) // light grey accent line
     .addTextDisplayComponents(
       (text) => text.setContent(`## 🌫️ Aura Reading for ${target.username}`),
       (text) => text.setContent(paragraph)
@@ -2281,6 +2281,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
