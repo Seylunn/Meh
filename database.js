@@ -79,27 +79,27 @@ export async function deleteAfkData(userId) {
 
 export async function getAllAfkData() {
   const docs = await db.collection(COLLECTIONS.afkData).find({}).toArray();
-  return new Map(docs.map(doc => [doc.userId, doc.data]));
+  return new Map(docs.map(doc => [doc.oduserId, doc.data]));
 }
 
 
-export async function getMsgCount(userId) {
-  const doc = await db.collection(COLLECTIONS.msgData).findOne({ oduserId: userId });
+export async function getMsgCount(key) {
+  const doc = await db.collection(COLLECTIONS.msgData).findOne({ key });
   return doc?.count || 0;
 }
 
-export async function setMsgCount(userId, count) {
+export async function setMsgCount(key, count) {
   await db.collection(COLLECTIONS.msgData).updateOne(
-    { oduserId: userId },
-    { $set: { oduserId: userId, count, updatedAt: new Date() } },
+    { key },
+    { $set: { key, count, updatedAt: new Date() } },
     { upsert: true }
   );
 }
 
-export async function incrementMsgCount(userId) {
+export async function incrementMsgCount(key) {
   const result = await db.collection(COLLECTIONS.msgData).findOneAndUpdate(
-    { oduserId: userId },
-    { $inc: { count: 1 }, $set: { updatedAt: new Date() }, $setOnInsert: { oduserId: userId } },
+    { key },
+    { $inc: { count: 1 }, $set: { updatedAt: new Date() }, $setOnInsert: { key } },
     { upsert: true, returnDocument: 'after' }
   );
   return result?.count || 1;
@@ -107,7 +107,7 @@ export async function incrementMsgCount(userId) {
 
 export async function getAllMsgCounts() {
   const docs = await db.collection(COLLECTIONS.msgData).find({}).toArray();
-  return new Map(docs.map(doc => [doc.userId, doc.count]));
+  return new Map(docs.map(doc => [doc.key, doc.count]));
 }
 
 
@@ -126,7 +126,7 @@ export async function setChatMemory(userId, memory) {
 
 export async function getAllChatMemory() {
   const docs = await db.collection(COLLECTIONS.chatMemory).find({}).toArray();
-  return new Map(docs.map(doc => [doc.userId, doc.memory]));
+  return new Map(docs.map(doc => [doc.oduserId, doc.memory]));
 }
 
 export async function getUserProfile(userId) {
@@ -144,7 +144,7 @@ export async function setUserProfile(userId, profile) {
 
 export async function getAllUserProfiles() {
   const docs = await db.collection(COLLECTIONS.userProfiles).find({}).toArray();
-  return new Map(docs.map(doc => [doc.userId, doc.profile]));
+  return new Map(docs.map(doc => [doc.oduserId, doc.profile]));
 }
 
 
@@ -163,7 +163,7 @@ export async function setConvoSummary(userId, summary) {
 
 export async function getAllConvoSummaries() {
   const docs = await db.collection(COLLECTIONS.convoSummaries).find({}).toArray();
-  return new Map(docs.map(doc => [doc.userId, doc.summary]));
+  return new Map(docs.map(doc => [doc.oduserId, doc.summary]));
 }
 
 
@@ -186,7 +186,7 @@ export async function removeFromBlacklist(userId) {
 
 export async function getAllBlacklist() {
   const docs = await db.collection(COLLECTIONS.blacklist).find({}).toArray();
-  return new Map(docs.map(doc => [doc.userId, doc.reason]));
+  return new Map(docs.map(doc => [doc.oduserId, doc.reason]));
 }
 
 export async function getCommandUsage() {

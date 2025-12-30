@@ -1,8 +1,10 @@
 import http from 'http';
+import os from 'os';
 import { getAllAfkData, getAllMsgCounts, getAllBlacklist } from './database.js';
 
 export function startWebserver(client) {
   const PORT = process.env.PORT || 3000;
+  const startTime = Date.now();
 
   const server = http.createServer(async (req, res) => {
     if (req.url === '/') {
@@ -12,6 +14,7 @@ export function startWebserver(client) {
         const ping = Math.round(client.ws.ping);
         const guilds = client.guilds.cache.size;
         const members = client.guilds.cache.reduce((acc, g) => acc + g.memberCount, 0);
+        const channels = client.channels.cache.size;
         
         const afkData = await getAllAfkData();
         const msgCounts = await getAllMsgCounts();
@@ -20,20 +23,26 @@ export function startWebserver(client) {
         const afkCount = afkData.size;
         const msgCount = msgCounts.size;
         const blacklistCount = blacklist.size;
+        
+        // System stats
+        const memUsage = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
 
         const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta http-equiv="refresh" content="5">
   <title>NINJA BOT STATUS</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
     :root {
       --bg: #000000;
       --fg: #ffffff;
-      --accent: #333333;
+      --accent: #444444;
       --border: #ffffff;
     }
     body {
@@ -41,54 +50,62 @@ export function startWebserver(client) {
       color: var(--fg);
       font-family: 'Courier New', Courier, monospace;
       margin: 0;
-      padding: 20px;
+      padding: 15px;
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
     }
     .container {
       width: 100%;
-      max-width: 800px;
+      max-width: 900px;
       border: 2px solid var(--border);
-      padding: 20px;
-      box-sizing: border-box;
+      padding: 15px;
     }
     header {
       border-bottom: 2px solid var(--border);
-      padding-bottom: 20px;
-      margin-bottom: 20px;
+      padding-bottom: 15px;
+      margin-bottom: 15px;
       text-align: center;
     }
     h1 {
       margin: 0;
+      font-size: 1.5rem;
       text-transform: uppercase;
       letter-spacing: 2px;
     }
+    header p {
+      margin: 8px 0 0 0;
+      font-size: 0.9rem;
+    }
     .status-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
     }
     .card {
       border: 1px solid var(--accent);
-      padding: 15px;
+      padding: 12px 8px;
       text-align: center;
+      background: rgba(255,255,255,0.02);
     }
     .card h2 {
-      font-size: 0.9rem;
-      margin: 0 0 10px 0;
-      opacity: 0.8;
+      font-size: 0.7rem;
+      margin: 0 0 8px 0;
+      opacity: 0.7;
       text-transform: uppercase;
+      letter-spacing: 1px;
     }
     .card .value {
-      font-size: 1.5rem;
+      font-size: 1.2rem;
       font-weight: bold;
+      word-break: break-word;
     }
     .footer {
-      margin-top: 40px;
-      font-size: 0.8rem;
-      opacity: 0.5;
+      margin-top: 20px;
+      font-size: 0.7rem;
+      opacity: 0.4;
       text-align: center;
     }
     .blink {
@@ -98,6 +115,49 @@ export function startWebserver(client) {
       0% { opacity: 1; }
       50% { opacity: 0; }
       100% { opacity: 1; }
+    }
+    /* Tablet */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 1.3rem;
+      }
+      .card .value {
+        font-size: 1.1rem;
+      }
+    }
+    /* Mobile */
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+      }
+      .container {
+        padding: 12px;
+        border-width: 1px;
+      }
+      h1 {
+        font-size: 1.1rem;
+        letter-spacing: 1px;
+      }
+      header p {
+        font-size: 0.8rem;
+      }
+      .status-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+      .card {
+        padding: 10px 6px;
+      }
+      .card h2 {
+        font-size: 0.6rem;
+        margin-bottom: 5px;
+      }
+      .card .value {
+        font-size: 1rem;
+      }
+      .footer {
+        font-size: 0.6rem;
+      }
     }
   </style>
 </head>
@@ -118,12 +178,20 @@ export function startWebserver(client) {
         <div class="value">${ping} ms</div>
       </div>
       <div class="card">
+        <h2>Memory</h2>
+        <div class="value">${memUsage} MB</div>
+      </div>
+      <div class="card">
         <h2>Servers</h2>
         <div class="value">${guilds}</div>
       </div>
       <div class="card">
         <h2>Users</h2>
         <div class="value">${members}</div>
+      </div>
+      <div class="card">
+        <h2>Channels</h2>
+        <div class="value">${channels}</div>
       </div>
       <div class="card">
         <h2>AFK Users</h2>
