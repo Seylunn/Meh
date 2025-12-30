@@ -710,71 +710,57 @@ I’m Seylun the developer of this bot i love food and sleep i also love playing
     }
 
 
-if (command === "predictdeath") {
+if (command === "prophecy") {
   const target = message.mentions.users.first() || message.author;
 
-  const causes = [
-    "being consumed by a rogue timeline",
-    "accidentally opening a forbidden portal",
-    "getting caught in a paradox loop",
-    "being erased by a corrupted memory fragment",
-    "colliding with an alternate version of yourself",
-    "being chosen as a sacrifice by the Algorithm Council",
-    "falling into a glitch in reality",
-    "being overwritten by a newer patch of the universe",
-    "touching an unidentified cosmic object",
-    "being absorbed into the background simulation"
+  const visions = [
+    "a fracture forming in your timeline",
+    "an echo of yourself watching from the corner of reality",
+    "a forgotten memory trying to rewrite itself",
+    "a shadow that doesn’t belong to you",
+    "a glitch in the world that only you can see",
+    "a message hidden between the seconds",
+    "a version of you that made a different choice",
+    "a ripple in the simulation following your steps",
+    "a secret waiting beneath your next decision",
+    "a pattern forming around your presence"
   ];
 
-  const locations = [
-    "in the Neon Wastelands",
-    "inside the Backrooms (Level 94)",
-    "during a temporal storm",
-    "in a forgotten server shard",
-    "inside a corrupted dream",
-    "at the edge of the rendered world",
-    "in a pocket dimension",
-    "inside a malfunctioning timeline",
-    "beneath the simulation core",
-    "in the void between frames"
+  const omens = [
+    "the lights flicker at the wrong moment",
+    "your reflection hesitates before you do",
+    "a familiar sound plays from nowhere",
+    "someone says something you were about to think",
+    "a dream repeats itself with new details",
+    "you notice a symbol you’ve never seen before",
+    "a stranger recognizes you without meeting you",
+    "time feels slightly out of sync",
+    "you hear footsteps behind you with no source",
+    "your name appears where it shouldn’t"
   ];
 
-  const warnings = [
-    "avoid mirrors for the next 72 hours",
-    "do not trust anyone who speaks in riddles",
-    "stay away from glitching shadows",
-    "ignore whispers coming from behind you",
-    "do not interact with your alternate selves",
-    "avoid all doors that weren’t there yesterday",
-    "do not accept mysterious gifts",
-    "stay away from unstable timelines",
-    "avoid looking directly at cosmic anomalies",
-    "do not acknowledge the entity watching you"
+  const outcomes = [
+    "a shift in your path",
+    "an unexpected encounter",
+    "a revelation you weren’t meant to see",
+    "a choice that branches reality",
+    "a moment that loops back later",
+    "a truth hidden in plain sight",
+    "a connection across timelines",
+    "a secret finally surfacing",
+    "a pattern completing itself",
+    "a door opening where none existed"
   ];
 
-  const dates = [
-    "in 3 cycles",
-    "next Tuesday but not this timeline’s Tuesday",
-    "when the moon flickers",
-    "after the next system reboot",
-    "once the simulation updates",
-    "during the next cosmic desync",
-    "when your shadow stops following you",
-    "after the 7th glitch event",
-    "when the clocks refuse to tick",
-    "once the veil thins"
-  ];
-
-  function generateProphecy() {
+  function generate() {
     return {
-      cause: causes[Math.floor(Math.random() * causes.length)],
-      location: locations[Math.floor(Math.random() * locations.length)],
-      warning: warnings[Math.floor(Math.random() * warnings.length)],
-      date: dates[Math.floor(Math.random() * dates.length)]
+      vision: visions[Math.floor(Math.random() * visions.length)],
+      omen: omens[Math.floor(Math.random() * omens.length)],
+      outcome: outcomes[Math.floor(Math.random() * outcomes.length)]
     };
   }
 
-  let prophecy = generateProphecy();
+  let prophecy = generate();
 
   function buildContainer() {
     return new ContainerBuilder().setComponents([
@@ -782,17 +768,15 @@ if (command === "predictdeath") {
 
       new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true),
 
-      new TextDisplayBuilder().setContent(`**Cause:** ${prophecy.cause}`),
-      new TextDisplayBuilder().setContent(`**Location:** ${prophecy.location}`),
-      new TextDisplayBuilder().setContent(`**Predicted Time:** ${prophecy.date}`),
+      new TextDisplayBuilder().setContent(`**Vision:** ${prophecy.vision}`),
+      new TextDisplayBuilder().setContent(`**Omen:** ${prophecy.omen}`),
+      new TextDisplayBuilder().setContent(`**Outcome:** ${prophecy.outcome}`),
 
       new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true),
 
-      new TextDisplayBuilder().setContent(`**Warning:** ${prophecy.warning}`),
-
       new ButtonBuilder()
-        .setCustomId("predictdeath_reroll")
-        .setLabel("Reroll Prophecy")
+        .setCustomId("prophecy_reroll")
+        .setLabel("Reveal Another Prophecy")
         .setStyle(ButtonStyle.Secondary)
     ]);
   }
@@ -805,9 +789,9 @@ if (command === "predictdeath") {
   const collector = msg.createMessageComponentCollector({ time: 60000 });
 
   collector.on("collect", async (i) => {
-    if (i.customId !== "predictdeath_reroll") return;
+    if (i.customId !== "prophecy_reroll") return;
 
-    prophecy = generateProphecy();
+    prophecy = generate();
 
     await i.update({
       components: [buildContainer()],
@@ -815,7 +799,6 @@ if (command === "predictdeath") {
     });
   });
 }
-
 
 
 
@@ -2163,6 +2146,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
