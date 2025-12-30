@@ -308,6 +308,7 @@ const HELP_CATEGORIES = {
   },
   fun: {
     emoji: '🎉', title: 'Fun Commands', commands: [
+      { name: 'pp', desc: 'shows a random pp size' },
       { name: ',roast', desc: 'Roast a user' },
       { name: ',lore', desc: 'Generate chaotic lore' },
       { name: ',av', desc: 'Strawberry spam' },
@@ -713,6 +714,44 @@ I’m Seylun the developer of this bot i love food and sleep i also love playing
     }
 
 const cooldowns = new Map(); // userId → timestamp
+if (command === "pp") {
+  const target = message.mentions.users.first() || message.author;
+
+  // Random length between 1 and 15
+  const length = Math.floor(Math.random() * 15) + 1;
+  const shaft = "=".repeat(length);
+  const pp = `3${shaft}D`;
+
+  let quote = "";
+
+  if (length <= 2) {
+    quote = "wow… that’s a short one";
+  } else if (length <= 6) {
+    quote = "a respectable size";
+  } else if (length <= 12) {
+    quote = "bro calm down";
+  } else {
+    quote = "this should be illegal";
+  }
+
+  const container = new ContainerBuilder()
+    .setAccentColor(0x2b2d31) // matches embed background
+    .addTextDisplayComponents(
+      (text) => text.setContent(`## 🍆 PP Size for ${target.username}`),
+      (text) => text.setContent(`**${pp}**`),
+      (text) => text.setContent(`*${quote}*`)
+    )
+    .addSeparatorComponents((sep) => sep.setDivider(true))
+    .addTextDisplayComponents(
+      (text) => text.setContent("-# PP Measurement System")
+    );
+
+  return message.reply({
+    components: [container],
+    flags: MessageFlags.IsComponentsV2,
+    allowedMentions: { repliedUser: false }
+  }).catch(() => {});
+}
 
 if (command === "aura") {
   const target = message.mentions.users.first() || message.author;
@@ -2281,6 +2320,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
