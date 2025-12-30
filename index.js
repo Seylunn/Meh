@@ -710,61 +710,57 @@ I’m Seylun the developer of this bot i love food and sleep i also love playing
     }
 
 
-// --- FULLY RANDOM WYR COMMAND ---
-const nouns = [
-  "a dragon", "a robot", "your clone", "a ghost", "a celebrity",
-  "your future self", "your past self", "a giant duck", "an alien",
-  "a talking cat", "a demon", "a wizard", "a billionaire", "a pirate"
-];
-
-const actions = [
-  "fight", "hug", "swap lives with", "babysit", "race against",
-  "be roommates with", "teach", "run from", "team up with",
-  "argue with", "cook for", "sing with", "battle", "prank"
-];
-
-const scenarios = [
-  "for 24 hours", "for a week", "forever", "in a haunted house",
-  "on live TV", "in Minecraft", "in real life", "in VR",
-  "while blindfolded", "with no context", "with superpowers",
-  "with no sleep", "during a storm", "in space"
-];
-
-function randomWYR() {
-  const a = `${actions[Math.floor(Math.random() * actions.length)]} ${nouns[Math.floor(Math.random() * nouns.length)]} ${scenarios[Math.floor(Math.random() * scenarios.length)]}`;
-  const b = `${actions[Math.floor(Math.random() * actions.length)]} ${nouns[Math.floor(Math.random() * nouns.length)]} ${scenarios[Math.floor(Math.random() * scenarios.length)]}`;
-  return { a, b };
-}
-
 if (command === "wyr") {
+  const nouns = [
+    "a dragon", "a robot", "your clone", "a ghost", "a celebrity",
+    "your future self", "your past self", "a giant duck", "an alien",
+    "a talking cat", "a demon", "a wizard", "a billionaire", "a pirate"
+  ];
+
+  const actions = [
+    "fight", "hug", "swap lives with", "babysit", "race against",
+    "be roommates with", "teach", "run from", "team up with",
+    "argue with", "cook for", "sing with", "battle", "prank"
+  ];
+
+  const scenarios = [
+    "for 24 hours", "for a week", "forever", "in a haunted house",
+    "on live TV", "in Minecraft", "in real life", "in VR",
+    "while blindfolded", "with no context", "with superpowers",
+    "with no sleep", "during a storm", "in space"
+  ];
+
+  function randomWYR() {
+    const a = `${actions[Math.floor(Math.random() * actions.length)]} ${nouns[Math.floor(Math.random() * nouns.length)]} ${scenarios[Math.floor(Math.random() * scenarios.length)]}`;
+    const b = `${actions[Math.floor(Math.random() * actions.length)]} ${nouns[Math.floor(Math.random() * nouns.length)]} ${scenarios[Math.floor(Math.random() * scenarios.length)]}`;
+    return { a, b };
+  }
+
   let q = randomWYR();
   let votesA = 0;
   let votesB = 0;
 
-  const embed = new EmbedBuilder()
-    .setTitle("Would You Rather?")
-    .setDescription(`**A:** ${q.a}\n**B:** ${q.b}`)
-    .setColor(Math.floor(Math.random() * 16777215))
-    .setFooter({ text: "Pick one!" });
-
-  const row = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
+  const row = new client.discord.ActionRowBuilder().addComponents(
+    new client.discord.ButtonBuilder()
       .setCustomId("wyr_a")
       .setLabel("Option A")
-      .setStyle(ButtonStyle.Primary),
+      .setStyle(client.discord.ButtonStyle.Primary),
 
-    new ButtonBuilder()
+    new client.discord.ButtonBuilder()
       .setCustomId("wyr_b")
       .setLabel("Option B")
-      .setStyle(ButtonStyle.Danger),
+      .setStyle(client.discord.ButtonStyle.Danger),
 
-    new ButtonBuilder()
+    new client.discord.ButtonBuilder()
       .setCustomId("wyr_reroll")
       .setLabel("Reroll")
-      .setStyle(ButtonStyle.Secondary)
+      .setStyle(client.discord.ButtonStyle.Secondary)
   );
 
-  const msg = await message.reply({ embeds: [embed], components: [row] });
+  const msg = await message.reply({
+    content: `**Would You Rather?**\n\n**A:** ${q.a}\n**B:** ${q.b}`,
+    components: [row]
+  });
 
   const collector = msg.createMessageComponentCollector({ time: 60000 });
 
@@ -781,16 +777,16 @@ if (command === "wyr") {
       votesA = 0;
       votesB = 0;
 
-      embed
-        .setDescription(`**A:** ${q.a}\n**B:** ${q.b}`)
-        .setColor(Math.floor(Math.random() * 16777215))
-        .setFooter({ text: "Pick one!" });
-
-      return i.update({ embeds: [embed], components: [row] });
+      return i.update({
+        content: `**Would You Rather?**\n\n**A:** ${q.a}\n**B:** ${q.b}`,
+        components: [row]
+      });
     }
 
-    embed.setFooter({ text: `Votes — A: ${votesA} | B: ${votesB}` });
-    await i.update({ embeds: [embed], components: [row] });
+    i.update({
+      content: `**Would You Rather?**\n\n**A:** ${q.a} — **${votesA} votes**\n**B:** ${q.b} — **${votesB} votes**`,
+      components: [row]
+    });
   });
 
   collector.on("end", () => {
@@ -798,7 +794,7 @@ if (command === "wyr") {
     msg.edit({ components: [row] });
   });
 }
-// --- END WYR COMMAND ---
+
 
 
 
@@ -2145,6 +2141,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
