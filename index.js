@@ -317,6 +317,7 @@ const HELP_CATEGORIES = {
       { name: ',pokemon', desc: 'Rolls a random pokemon' },
       { name: ',ship', desc: 'ship 2 users' },
       { name: ',prophecy', desc: 'show a users fate' },
+      { name: ',aura', desc: 'show a users aura' },
       { name: ',fact', desc: 'Useless fact' },
     ]
   },
@@ -713,6 +714,75 @@ I’m Seylun the developer of this bot i love food and sleep i also love playing
 
 const cooldowns = new Map(); // userId → timestamp
 
+if (command === "aura") {
+  const target = message.mentions.users.first() || message.author;
+
+  const colors = [
+    "a soft **Silver Mist**",
+    "a warm **Rose Quartz glow**",
+    "a deep **Indigo haze**",
+    "a flicker of **Golden Ember**",
+    "a gentle **Verdant shimmer**",
+    "a protective **Obsidian veil**"
+  ];
+
+  const flows = [
+    "drifting in quiet currents",
+    "blooming outward with gentle intention",
+    "spiraling in layered, thoughtful patterns",
+    "fracturing softly as it heals and reforms",
+    "radiating with steady, patient warmth",
+    "submerged in deep, introspective calm"
+  ];
+
+  const echoes = [
+    "a faint hum that lingers in the air",
+    "a soft warmth that trails behind them",
+    "a shimmer that fades like a memory",
+    "a quiet pulse beneath the surface",
+    "a ripple that settles into stillness",
+    "a whisper of light that drifts away"
+  ];
+
+  const insights = [
+    "Your energy is shifting toward clarity.",
+    "You’re carrying something unspoken but gentle.",
+    "Your presence is preparing for renewal.",
+    "You’re holding more strength than you realize.",
+    "Your path is aligning with quiet purpose.",
+    "Your aura is softening into balance."
+  ];
+
+  const auraColor = colors[Math.floor(Math.random() * colors.length)];
+  const auraFlow = flows[Math.floor(Math.random() * flows.length)];
+  const auraEcho = echoes[Math.floor(Math.random() * echoes.length)];
+  const auraInsight = insights[Math.floor(Math.random() * insights.length)];
+
+  const paragraph =
+    `The aura surrounding **${target.username}** appears as ${auraColor}, ` +
+    `${auraFlow}, leaving behind ${auraEcho}. ` +
+    `${auraInsight}`;
+
+  const container = new ContainerBuilder()
+    .setAccentColor(0xb9bbbe) // light grey accent line
+    .addTextDisplayComponents(
+      (text) => text.setContent(`## 🌫️ Aura Reading for ${target.username}`),
+      (text) => text.setContent(paragraph)
+    )
+    .addSeparatorComponents((sep) => sep.setDivider(true))
+    .addTextDisplayComponents(
+      (text) => text.setContent("-# Aura Reading System")
+    );
+
+  return message.reply({
+    components: [container],
+    flags: MessageFlags.IsComponentsV2,
+    allowedMentions: { repliedUser: false }
+  }).catch(() => {});
+}
+
+
+    
 if (command === "memberdm") {
   const senderId = message.author.id;
   const now = Date.now();
@@ -2211,6 +2281,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
