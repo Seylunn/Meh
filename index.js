@@ -714,15 +714,26 @@ if (command === "spotify") {
   const user = message.mentions.users.first() || message.author;
   const member = message.guild.members.cache.get(user.id);
 
-  const activity = member.presence?.activities.find(a => a.name === "Spotify" && a.type === 2);
+  const activity = member.presence?.activities.find(
+    a => a.name === "Spotify" && a.type === 2
+  );
 
+  // --- NOT LISTENING BLOCK (V2 SAFE) ---
   if (!activity) {
+    const notListening = new ContainerBuilder()
+      .addTextDisplayComponents(
+        new TextDisplayBuilder().setContent(
+          `⚠️ ${user.username} is not listening to Spotify right now.`
+        )
+      );
+
     return message.reply({
-      content: `${user.username} is not listening to Spotify right now.`,
+      components: [notListening],
       flags: MessageFlags.IsComponentsV2
     });
   }
 
+  // --- EXTRACT SPOTIFY DATA ---
   const track = activity.details || "Unknown Track";
   const artist = activity.state || "Unknown Artist";
   const album = activity.assets?.largeText || "Unknown Album";
@@ -732,15 +743,22 @@ if (command === "spotify") {
   const end = activity.timestamps?.end;
 
   const progress = start && end
-    ? Math.floor((Date.now() - start.getTime()) / (end.getTime() - start.getTime()) * 100)
+    ? Math.floor(
+        ((Date.now() - start.getTime()) /
+          (end.getTime() - start.getTime())) *
+          100
+      )
     : null;
 
+  // --- MAIN SPOTIFY CONTAINER ---
   const container = new ContainerBuilder()
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(`## 🎵 Spotify — ${user.username}`)
     )
     .addSeparatorComponents(
-      new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
+      new SeparatorBuilder()
+        .setSpacing(SeparatorSpacingSize.Small)
+        .setDivider(true)
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(`**Track:** ${track}`)
@@ -752,6 +770,7 @@ if (command === "spotify") {
       new TextDisplayBuilder().setContent(`**Album:** ${album}`)
     );
 
+  // --- ALBUM ART ---
   if (albumArt) {
     container.addMediaGalleryComponents(
       new MediaGalleryBuilder().addItems(
@@ -761,15 +780,19 @@ if (command === "spotify") {
   }
 
   container.addSeparatorComponents(
-    new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
+    new SeparatorBuilder()
+      .setSpacing(SeparatorSpacingSize.Small)
+      .setDivider(true)
   );
 
+  // --- PROGRESS ---
   if (progress !== null) {
     container.addTextDisplayComponents(
       new TextDisplayBuilder().setContent(`**Progress:** ${progress}%`)
     );
   }
 
+  // --- SPOTIFY LINK BUTTON ---
   container.addButtonComponents(
     new ButtonBuilder()
       .setStyle(ButtonStyle.Link)
@@ -777,6 +800,7 @@ if (command === "spotify") {
       .setURL(`https://open.spotify.com/track/${activity.syncId}`)
   );
 
+  // --- SEND FINAL V2 MESSAGE ---
   return message.reply({
     components: [container],
     flags: MessageFlags.IsComponentsV2 | MessageFlags.IsPersistent
@@ -2128,6 +2152,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
