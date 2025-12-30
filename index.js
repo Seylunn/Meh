@@ -25,7 +25,7 @@ let lastRestartChannel = null;
 
 /* ===================== CONFIG ===================== */
 
-const PREFIX = '-';
+const PREFIX = 'b!';
 const MSG_FILE = './msgData.json';
 const AFK_FILE = './afkData.json';
 const MEMORY_FILE = './chatMemory.json';
