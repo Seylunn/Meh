@@ -710,6 +710,7 @@ I’m Seylun the developer of this bot i love food and sleep i also love playing
     }
 
 
+
 if (command === "prophecy") {
   const target = message.mentions.users.first() || message.author;
 
@@ -763,19 +764,25 @@ if (command === "prophecy") {
   let prophecy = generate();
 
   function buildContainer() {
-    const container = new ContainerBuilder();
+    const container = new ContainerBuilder()
+      .setAccentColor(0x2b2d31)
+      .addTextDisplayComponents(
+        (text) => text.setContent(`## 🔮 Prophecy for ${target.username}`),
+        (text) => text.setContent(`**Vision:** ${prophecy.vision}`),
+        (text) => text.setContent(`**Omen:** ${prophecy.omen}`),
+        (text) => text.setContent(`**Outcome:** ${prophecy.outcome}`)
+      )
+      .addSeparatorComponents((sep) => sep.setDivider(true))
+      .addTextDisplayComponents(
+        (text) => text.setContent("-# Prophecy System")
+      );
 
-    container.addComponents(
-      new TextDisplayBuilder().setContent(`## 🔮 Prophecy for ${target.username}`),
-      new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true),
-      new TextDisplayBuilder().setContent(`**Vision:** ${prophecy.vision}`),
-      new TextDisplayBuilder().setContent(`**Omen:** ${prophecy.omen}`),
-      new TextDisplayBuilder().setContent(`**Outcome:** ${prophecy.outcome}`),
-      new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true),
-      new ButtonBuilder()
-        .setCustomId("prophecy_reroll")
-        .setLabel("Reveal Another Prophecy")
-        .setStyle(ButtonStyle.Secondary)
+    container.addButtonComponents(
+      (btn) =>
+        btn
+          .setCustomId("prophecy_reroll")
+          .setLabel("Reveal Another Prophecy")
+          .setStyle(ButtonStyle.Secondary)
     );
 
     return container;
@@ -783,23 +790,24 @@ if (command === "prophecy") {
 
   const msg = await message.reply({
     components: [buildContainer()],
-    flags: MessageFlags.IsComponentsV2 | MessageFlags.IsPersistent
+    flags: MessageFlags.IsComponentsV2,
+    allowedMentions: { repliedUser: false }
   });
 
   const collector = msg.createMessageComponentCollector({ time: 60000 });
 
   collector.on("collect", async (i) => {
     if (i.customId !== "prophecy_reroll") return;
-    if (i.user.id !== message.author.id) return i.reply({ content: "Not your prophecy.", ephemeral: true });
 
     prophecy = generate();
 
     await i.update({
       components: [buildContainer()],
-      flags: MessageFlags.IsComponentsV2 | MessageFlags.IsPersistent
+      flags: MessageFlags.IsComponentsV2
     });
   });
 }
+
 
 
 
@@ -2148,6 +2156,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
