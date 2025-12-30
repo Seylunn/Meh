@@ -717,30 +717,45 @@ const cooldowns = new Map(); // userId → timestamp
 if (command === "pp") {
   const target = message.mentions.users.first() || message.author;
 
-  // Random length between 1 and 15
-  const length = Math.floor(Math.random() * 15) + 1;
-  const shaft = "=".repeat(length);
-  const pp = `3${shaft}D`;
+  const quotes = [
+    "wow… that’s a short one",
+    "a respectable size",
+    "bro calm down",
+    "this should be illegal",
+    "scientists fear this thing",
+    "that’s basically DLC content",
+    "this is a war crime",
+    "that’s adorable",
+    "calm down, monster",
+    "this violates several treaties"
+  ];
 
-  let quote = "";
+  const generatePP = () => {
+    const length = Math.floor(Math.random() * 20) + 1; // 1–20
+    const shaft = "=".repeat(length);
+    const pp = `3${shaft}D`;
 
-  if (length <= 2) {
-    quote = "wow… that’s a short one";
-  } else if (length <= 6) {
-    quote = "a respectable size";
-  } else if (length <= 12) {
-    quote = "bro calm down";
-  } else {
-    quote = "this should be illegal";
-  }
+    const quote = quotes[Math.floor(Math.random() * quotes.length)];
+
+    return `**${pp}** — *${quote}*`;
+  };
+
+  // Random number of measurements (8–20)
+  const count = Math.floor(Math.random() * 13) + 8;
 
   const container = new ContainerBuilder()
-    .setAccentColor(0x2b2d31) // matches embed background
+    .setAccentColor(0x2b2d31)
     .addTextDisplayComponents(
-      (text) => text.setContent(`## 🍆 PP Size for ${target.username}`),
-      (text) => text.setContent(`**${pp}**`),
-      (text) => text.setContent(`*${quote}*`)
-    )
+      (text) => text.setContent(`## 🍆 PP Analysis for ${target.username}`)
+    );
+
+  for (let i = 0; i < count; i++) {
+    container.addTextDisplayComponents(
+      (text) => text.setContent(generatePP())
+    );
+  }
+
+  container
     .addSeparatorComponents((sep) => sep.setDivider(true))
     .addTextDisplayComponents(
       (text) => text.setContent("-# PP Measurement System")
@@ -2320,6 +2335,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
