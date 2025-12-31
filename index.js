@@ -725,16 +725,20 @@ if (command === "servericon") {
   const container = new ContainerBuilder()
     .setAccentColor(0x2b2d31)
     .addTextDisplayComponents(
-      (text) => text.setContent("## 🖼️ Server Icon")
+      (text) => text.setContent("## 📷 Server Icon")
     );
 
   return message.reply({
     components: [container],
-    files: icon ? [icon] : [],
+    embeds: icon ? [{
+      image: { url: icon },
+      color: 0x2b2d31
+    }] : [],
     flags: MessageFlags.IsComponentsV2,
     allowedMentions: { repliedUser: false }
   });
 }
+
 
     if (command === "pp") {
   const target = message.mentions.users.first() || message.author;
@@ -796,16 +800,20 @@ if (command === "anime") {
   const container = new ContainerBuilder()
     .setAccentColor(0x2b2d31)
     .addTextDisplayComponents(
-      (text) => text.setContent("## 🖼️ Random Anime Image")
+      (text) => text.setContent("## 📷 Random Anime Image")
     );
 
   return message.reply({
     components: [container],
-    files: [data.url],
+    embeds: [{
+      image: { url: data.url },
+      color: 0x2b2d31
+    }],
     flags: MessageFlags.IsComponentsV2,
     allowedMentions: { repliedUser: false }
   });
 }
+
 
 
     
@@ -2307,6 +2315,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
