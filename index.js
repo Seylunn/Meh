@@ -718,6 +718,40 @@ const cooldowns = new Map(); // userId → timestamp
 
 
 
+if (command === "fox") {
+  try {
+    const res = await fetch("https://randomfox.ca/floof/");
+    const data = await res.json();
+
+    if (!data || !data.image) {
+      return message.reply("Couldn't fetch a fox right now.");
+    }
+
+    const image = data.image;
+
+    const gallery = new MediaGalleryBuilder()
+      .addItems(
+        new MediaGalleryItemBuilder().setURL(image)
+      );
+
+    const container = new ContainerBuilder()
+      .setAccentColor(0xffa500)
+      .addTextDisplayComponents(text =>
+        text.setContent("## 🦊 Random Fox")
+      )
+      .addMediaGalleryComponents(gallery);
+
+    return message.reply({
+      components: [container],
+      flags: MessageFlags.IsComponentsV2,
+      allowedMentions: { repliedUser: false }
+    });
+
+  } catch (err) {
+    console.error(err);
+    return message.reply("Fox API failed.");
+  }
+}
 
 
 
@@ -2275,6 +2309,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
