@@ -764,7 +764,7 @@ if (command === "luck") {
   const container = new ContainerBuilder()
     .setAccentColor(0x2b2d31)
     .addTextDisplayComponents(text =>
-      text.setContent(`## 🎲 Luck Check\n**${luck}%** — ${messageText}`)
+      text.setContent(`## 🍀 Luck Check\n**${luck}%** — ${messageText}`)
     );
 
   return message.reply({
@@ -2275,6 +2275,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
