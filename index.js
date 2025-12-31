@@ -805,45 +805,73 @@ if (command === "servericon") {
 
 
 if (command === "anime") {
-  try {
-    const res = await fetch("https://api.jikan.moe/v4/characters?page=1&limit=25");
-    const data = await res.json();
+  // Static pool of mostly boy anime characters
+  const characters = [
+    {
+      name: "Spike Spiegel",
+      url: "https://i.imgur.com/2bXkFJr.png"
+    },
+    {
+      name: "Jet Black",
+      url: "https://i.imgur.com/8kCk1xA.png"
+    },
+    {
+      name: "Kurapika",
+      url: "https://i.imgur.com/s7x2nQw.png"
+    },
+    {
+      name: "Killua Zoldyck",
+      url: "https://i.imgur.com/VQp0yXg.png"
+    },
+    {
+      name: "Yusuke Urameshi",
+      url: "https://i.imgur.com/2YxG7qP.png"
+    },
+    {
+      name: "Tamaki Suou",
+      url: "https://i.imgur.com/0Q2cQkX.png"
+    },
+    {
+      name: "Levi Ackerman",
+      url: "https://i.imgur.com/4bqkq0t.png"
+    },
+    {
+      name: "Kakashi Hatake",
+      url: "https://i.imgur.com/4a9Uf0C.png"
+    },
+    {
+      name: "Gojo Satoru",
+      url: "https://i.imgur.com/MxUuX5M.png"
+    },
+    {
+      name: "Howl",
+      url: "https://i.imgur.com/2rjKp7U.png"
+    }
+  ];
 
-    const characters = Array.isArray(data.data)
-      ? data.data.filter(c => c.images?.jpg?.image_url)
-      : [];
+  const pick = characters[Math.floor(Math.random() * characters.length)];
 
-    if (characters.length === 0) throw new Error("No valid characters found");
+  const gallery = new MediaGalleryBuilder()
+    .addItems(
+      new MediaGalleryItemBuilder().setURL(pick.url)
+    );
 
-    const pick = characters[Math.floor(Math.random() * characters.length)];
-    const image = pick.images.jpg.image_url;
+  const container = new ContainerBuilder()
+    .setAccentColor(0x2b2d31)
+    .addTextDisplayComponents(
+      (text) => text.setContent(`## 📷 ${pick.name}`)
+    )
+    .addMediaGalleryComponents(gallery);
 
-    const gallery = new MediaGalleryBuilder()
-      .addItems(
-        new MediaGalleryItemBuilder().setURL(image)
-      );
+  await message.reply({
+    components: [container],
+    flags: MessageFlags.IsComponentsV2,
+    allowedMentions: { repliedUser: false }
+  });
 
-    const container = new ContainerBuilder()
-      .setAccentColor(0x2b2d31)
-      .addTextDisplayComponents(
-        (text) => text.setContent(`## 📷 ${pick.name}`)
-      )
-      .addMediaGalleryComponents(gallery);
-
-    await message.reply({
-      components: [container],
-      flags: MessageFlags.IsComponentsV2,
-      allowedMentions: { repliedUser: false }
-    });
-
-    return; // 🔒 Prevents fallthrough or double reply
-
-  } catch (err) {
-    console.error("Anime command failed:", err);
-    await message.reply("API error: No anime images available right now.");
-    return; // 🔒 Prevents fallthrough
-  }
+  return;
 }
+
 
 
 
@@ -2346,6 +2374,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
