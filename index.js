@@ -291,6 +291,7 @@ const HELP_CATEGORIES = {
       { name: ',translate', desc: 'Translate a message' },
       { name: ',ownerinfo', desc: 'show the owners info' },
       { name: ',memberdm' , desc: 'DM any user with the command' },
+      { name: ',servericon' , desc: 'show the servers icon' },
       { name: ',uptime', desc: 'Bot uptime' }
     ]
   },
@@ -319,6 +320,7 @@ const HELP_CATEGORIES = {
       { name: ',ship', desc: 'ship 2 users' },
       { name: ',prophecy', desc: 'show a users fate' },
       { name: ',aura', desc: 'show a users aura' },
+      { name: ',anime', desc: 'shows a random anime pic' },
       { name: ',fact', desc: 'Useless fact' },
     ]
   },
@@ -715,6 +717,24 @@ I’m Seylun the developer of this bot i love food and sleep i also love playing
 
 const cooldowns = new Map(); // userId → timestamp
 
+if (command === "servericon") {
+  if (!message.guild) return;
+
+  const icon = message.guild.iconURL({ size: 4096 });
+
+  const container = new ContainerBuilder()
+    .setAccentColor(0x2b2d31)
+    .addTextDisplayComponents(
+      (text) => text.setContent(`## 🖼️ Server Icon`),
+      (text) => text.setContent(icon || "This server has no icon.")
+    );
+
+  return message.reply({
+    components: [container],
+    flags: MessageFlags.IsComponentsV2,
+    allowedMentions: { repliedUser: false }
+  });
+}
 
     if (command === "pp") {
   const target = message.mentions.users.first() || message.author;
@@ -769,6 +789,23 @@ const cooldowns = new Map(); // userId → timestamp
 }
 
 
+if (command === "anime") {
+  const res = await fetch("https://api.waifu.pics/sfw/waifu");
+  const data = await res.json();
+
+  const container = new ContainerBuilder()
+    .setAccentColor(0x2b2d31)
+    .addTextDisplayComponents(
+      (text) => text.setContent("## 🖼️ Random Anime Image"),
+      (text) => text.setContent(data.url)
+    );
+
+  return message.reply({
+    components: [container],
+    flags: MessageFlags.IsComponentsV2,
+    allowedMentions: { repliedUser: false }
+  });
+}
 
     
 if (command === "memberdm") {
@@ -2269,6 +2306,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
