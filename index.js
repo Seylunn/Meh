@@ -1,4 +1,4 @@
-import 'dotenv/config';
+2import 'dotenv/config';
 import { startWebserver } from './webserver.js';
 import {
   connectDB,
@@ -721,15 +721,17 @@ if (command === "anime") {
   const res = await fetch("https://nekos.best/api/v2/boy");
   const data = await res.json();
 
+  const image = data.results[0].url;
+
   const gallery = new MediaGalleryBuilder()
     .addItems(
-      new MediaGalleryItemBuilder().setURL(data.url)
+      new MediaGalleryItemBuilder().setURL(image)
     );
 
   const container = new ContainerBuilder()
     .setAccentColor(0x2b2d31)
     .addTextDisplayComponents(
-      (text) => text.setContent("## 📷 Random Anime Image")
+      (text) => text.setContent("## 📷 Random Anime Boy")
     )
     .addMediaGalleryComponents(gallery);
 
@@ -739,6 +741,7 @@ if (command === "anime") {
     allowedMentions: { repliedUser: false }
   });
 }
+
 if (command === "servericon") {
   if (!message.guild) return;
 
@@ -2322,6 +2325,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
