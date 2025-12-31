@@ -1,4 +1,4 @@
-2import 'dotenv/config';
+import 'dotenv/config';
 import { startWebserver } from './webserver.js';
 import {
   connectDB,
@@ -2325,6 +2325,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
