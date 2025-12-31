@@ -717,6 +717,7 @@ I’m Seylun the developer of this bot i love food and sleep i also love playing
 
 const cooldowns = new Map(); // userId → timestamp
 
+
 if (command === "anime") {
   try {
     const res = await fetch("https://api.jikan.moe/v4/characters?page=1&limit=25");
@@ -754,8 +755,6 @@ if (command === "anime") {
     return message.reply("API error: No anime images available right now.");
   }
 }
-
-
 
 
 
@@ -2342,6 +2341,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
