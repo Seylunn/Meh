@@ -1,3 +1,45 @@
+import http from 'http';
+import os from 'os';
+import { getAllAfkData, getAllMsgCounts, getAllBlacklist } from './database.js';
+
+export function startWebserver(client) {
+  const PORT = process.env.PORT || 3000;
+
+  const server = http.createServer(async (req, res) => {
+    if (req.url === '/') {
+      try {
+        // Gather Stats
+        const uptime = formatUptime(client.uptime);
+        const ping = Math.round(client.ws.ping);
+        const guilds = client.guilds.cache.size;
+        const members = client.guilds.cache.reduce((acc, g) => acc + g.memberCount, 0);
+        const channels = client.channels.cache.size;
+
+        const afkData = await getAllAfkData();
+        const msgCounts = await getAllMsgCounts();
+        const blacklist = await getAllBlacklist();
+
+        const afkCount = afkData.size;
+        const msgCount = msgCounts.size;
+        const blacklistCount = blacklist.size;
+
+        const memUsage = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
+
+        // 🔥 AUTO‑LOAD COMMANDS FROM THE BOT
+        let commandList = [];
+        try {
+          if (client.commands) {
+            commandList = [...client.commands.keys()];
+          } else {
+            commandList = ["client.commands not found"];
+          }
+        } catch (err) {
+          console.error("Error loading commands:", err);
+          commandList = ["Error loading commands"];
+        }
+
+        // 🔥 FULL HTML PAGE
+        const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -131,4 +173,35 @@
   </div>
 </body>
 </html>
+        `;
 
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(html);
+
+      } catch (error) {
+        console.error(error);
+        res.writeHead(500);
+        res.end('Internal Server Error');
+      }
+
+    } else if (req.url === '/health') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ status: 'ok', uptime: client.uptime }));
+    } else {
+      res.writeHead(404);
+      res.end('Not Found');
+    }
+  });
+
+  server.listen(PORT, () => {
+    console.log(`🚀 Web server running on http://localhost:${PORT}`);
+  });
+}
+
+function formatUptime(ms) {
+  if (!ms || ms <= 0) return '0d 0h 0m';
+  const minutes = Math.floor((ms / 1000 / 60) % 60);
+  const hours = Math.floor((ms / 1000 / 60 / 60) % 24);
+  const days = Math.floor(ms / 1000 / 60 / 60 / 24);
+  return `${days}d ${hours}h ${minutes}m`;
+}
