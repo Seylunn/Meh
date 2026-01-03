@@ -25,7 +25,7 @@ export function startWebserver(client) {
 
         const memUsage = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
 
-        // ⭐ YOUR COMMAND CATEGORIES
+        // ⭐ COMMAND CATEGORIES
         const commandCategories = {
           general: {
             emoji: "📌",
@@ -149,12 +149,6 @@ export function startWebserver(client) {
       margin-bottom: 15px;
       text-align: center;
     }
-    h1 {
-      margin: 0;
-      font-size: 1.5rem;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-    }
     .status-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -183,18 +177,10 @@ export function startWebserver(client) {
       opacity: 0.4;
       text-align: center;
     }
-
-    /* COMMANDS */
     .commands {
       margin-top: 25px;
       border-top: 1px solid var(--border);
       padding-top: 15px;
-    }
-    .commands h2 {
-      font-size: 1rem;
-      margin-bottom: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
     }
     .cat-btn {
       background: #111;
@@ -207,25 +193,69 @@ export function startWebserver(client) {
     .cat-btn:hover {
       background: #333;
     }
-    .command-category ul {
-      list-style: none;
-      padding: 0;
-      margin: 10px 0 0 0;
-    }
-    .command-category li {
-      padding: 3px 0;
-      font-size: 0.85rem;
-    }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <header>
-      <h1>NINJA V2 SYSTEM <span class="blink">_</span></h1>
-      <p>STATUS: ONLINE</p>
+
+    <!-- ⭐ BOT PROFILE CARD -->
+    <header style="text-align:center; padding-bottom:15px; margin-bottom:15px; border-bottom:2px solid var(--border);">
+
+      <img src="${client.user.displayAvatarURL()}" 
+           alt="Bot Avatar" 
+           style="width:90px; height:90px; border-radius:50%; border:2px solid white; margin-bottom:10px;">
+
+      <h1 style="margin:0; font-size:1.3rem; letter-spacing:2px;">
+        ${client.user.username}
+      </h1>
+
+      <p style="margin:5px 0; opacity:0.7; font-size:0.8rem;">
+        ID: ${client.user.id}
+      </p>
+
+      <p style="margin:5px 0; font-size:0.9rem;">
+        Status: <strong>ONLINE</strong>
+      </p>
+
+      <p style="margin:5px 0; opacity:0.8; font-size:0.85rem;">
+        Activity: ${client.user.presence?.activities?.[0]?.name || "None"}
+      </p>
+
+      <div style="margin-top:12px;">
+        <a href="https://discord.com/oauth2/authorize?client_id=${client.user.id}&scope=bot&permissions=8"
+           style="
+             display:inline-block;
+             padding:6px 14px;
+             background:#111;
+             color:white;
+             border:1px solid white;
+             text-decoration:none;
+             font-family:'Courier New', monospace;
+             font-size:0.85rem;
+             margin-right:8px;
+           ">
+          INVITE BOT
+        </a>
+
+        <a href="https://discord.gg/CM9b9Bada7"
+           style="
+             display:inline-block;
+             padding:6px 14px;
+             background:#111;
+             color:white;
+             border:1px solid white;
+             text-decoration:none;
+             font-family:'Courier New', monospace;
+             font-size:0.85rem;
+           ">
+          CONTACT SUPPORT
+        </a>
+      </div>
+
     </header>
 
+    <!-- ⭐ STATUS GRID -->
     <div class="status-grid">
       <div class="card"><h2>Uptime</h2><div class="value">${uptime}</div></div>
       <div class="card"><h2>Ping</h2><div class="value">${ping} ms</div></div>
@@ -238,7 +268,7 @@ export function startWebserver(client) {
       <div class="card"><h2>Blacklisted</h2><div class="value">${blacklistCount}</div></div>
     </div>
 
-    <!-- ⭐ CATEGORY SWITCHER -->
+    <!-- ⭐ COMMANDS -->
     <div class="commands">
       <h2>Commands</h2>
       <div>${categoryButtons}</div>
@@ -291,4 +321,4 @@ function formatUptime(ms) {
   const hours = Math.floor((ms / 1000 / 60 / 60) % 24);
   const days = Math.floor(ms / 1000 / 60 / 60 / 24);
   return `${days}d ${hours}h ${minutes}m`;
-        }
+}
