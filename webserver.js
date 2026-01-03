@@ -1,43 +1,3 @@
-import http from 'http';
-import os from 'os';
-import fs from 'fs';
-import { getAllAfkData, getAllMsgCounts, getAllBlacklist } from './database.js';
-
-export function startWebserver(client) {
-  const PORT = process.env.PORT || 3000;
-  const startTime = Date.now();
-
-  const server = http.createServer(async (req, res) => {
-    if (req.url === '/') {
-      try {
-        // Gather Stats
-        const uptime = formatUptime(client.uptime);
-        const ping = Math.round(client.ws.ping);
-        const guilds = client.guilds.cache.size;
-        const members = client.guilds.cache.reduce((acc, g) => acc + g.memberCount, 0);
-        const channels = client.channels.cache.size;
-        
-        const afkData = await getAllAfkData();
-        const msgCounts = await getAllMsgCounts();
-        const blacklist = await getAllBlacklist();
-
-        const afkCount = afkData.size;
-        const msgCount = msgCounts.size;
-        const blacklistCount = blacklist.size;
-        
-        // System stats
-        const memUsage = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
-
-        // Load commands from JSON (auto-updates when Git updates)
-        let commands = [];
-        try {
-          const data = fs.readFileSync('./commands.json', 'utf8');
-          commands = JSON.parse(data).commands || [];
-        } catch (err) {
-          console.error("Failed to load commands.json:", err);
-        }
-
-        const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -46,17 +6,12 @@ export function startWebserver(client) {
   <meta http-equiv="refresh" content="5">
   <title>NINJA BOT STATUS</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     :root {
       --bg: #000000;
       --fg: #ffffff;
       --accent: #444444;
       --border: #ffffff;
-    }
-    html, body {
-      height: 100%;
     }
     body {
       background-color: var(--bg);
@@ -69,7 +24,6 @@ export function startWebserver(client) {
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      -webkit-font-smoothing: antialiased;
     }
     .container {
       width: 100%;
@@ -88,10 +42,6 @@ export function startWebserver(client) {
       font-size: 1.5rem;
       text-transform: uppercase;
       letter-spacing: 2px;
-    }
-    header p {
-      margin: 8px 0 0 0;
-      font-size: 0.9rem;
     }
     .status-grid {
       display: grid;
@@ -114,7 +64,6 @@ export function startWebserver(client) {
     .card .value {
       font-size: 1.2rem;
       font-weight: bold;
-      word-break: break-word;
     }
     .footer {
       margin-top: 20px;
@@ -122,16 +71,8 @@ export function startWebserver(client) {
       opacity: 0.4;
       text-align: center;
     }
-    .blink {
-      animation: blink 1s infinite;
-    }
-    @keyframes blink {
-      0% { opacity: 1; }
-      50% { opacity: 0; }
-      100% { opacity: 1; }
-    }
 
-    /* Commands Section */
+    /* COMMANDS SECTION */
     .commands {
       margin-top: 25px;
       border-top: 1px solid var(--border);
@@ -147,58 +88,16 @@ export function startWebserver(client) {
       list-style: none;
       padding: 0;
       margin: 0;
+      columns: 2;
     }
     .commands li {
       font-size: 0.85rem;
       padding: 3px 0;
-      opacity: 0.8;
-    }
-
-    /* Tablet */
-    @media (max-width: 768px) {
-      h1 {
-        font-size: 1.3rem;
-      }
-      .card .value {
-        font-size: 1.1rem;
-      }
-    }
-    /* Mobile */
-    @media (max-width: 480px) {
-      body {
-        padding: 10px;
-      }
-      .container {
-        padding: 12px;
-        border-width: 1px;
-      }
-      h1 {
-        font-size: 1.1rem;
-        letter-spacing: 1px;
-      }
-      header p {
-        font-size: 0.8rem;
-      }
-      .status-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-      }
-      .card {
-        padding: 10px 6px;
-      }
-      .card h2 {
-        font-size: 0.6rem;
-        margin-bottom: 5px;
-      }
-      .card .value {
-        font-size: 1rem;
-      }
-      .footer {
-        font-size: 0.6rem;
-      }
+      opacity: 0.85;
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <header>
@@ -218,10 +117,11 @@ export function startWebserver(client) {
       <div class="card"><h2>Blacklisted</h2><div class="value">${blacklistCount}</div></div>
     </div>
 
+    <!-- COMMAND LIST -->
     <div class="commands">
       <h2>Available Commands</h2>
       <ul>
-        ${commands.map(cmd => `<li>${cmd}</li>`).join('')}
+        ${commandList.map(cmd => `<li>${cmd}</li>`).join('')}
       </ul>
     </div>
 
@@ -231,33 +131,4 @@ export function startWebserver(client) {
   </div>
 </body>
 </html>
-        `;
-        res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.end(html);
-      } catch (error) {
-        console.error(error);
-        res.writeHead(500);
-        res.end('Internal Server Error');
-      }
-    } else if (req.url === '/health') {
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ status: 'ok', uptime: client.uptime }));
-    } else {
-      res.writeHead(404);
-      res.end('Not Found');
-    }
-  });
 
-  server.listen(PORT, () => {
-    console.log(`🚀 Web server running on http://localhost:${PORT}`);
-  });
-}
-
-function formatUptime(ms) {
-  if (!ms || ms <= 0) return '0d 0h 0m';
-  const seconds = Math.floor((ms / 1000) % 60);
-  const minutes = Math.floor((ms / (1000 * 60)) % 60);
-  const hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
-  const days = Math.floor(ms / (1000 * 60 * 60 * 24));
-  return `${days}d ${hours}h ${minutes}m`;
-        }
