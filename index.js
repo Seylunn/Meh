@@ -901,7 +901,32 @@ if (command === "memberdm") {
   }).catch(() => {});
 }
 
+export default {
+  name: "info",
+  description: "Shows bot information",
 
+  run: async (client, message, args) => {
+
+    const servers = client.guilds.cache.size;
+    const users = client.guilds.cache.reduce((a, g) => a + g.memberCount, 0);
+
+    const containerBuilder = [
+      "NINJA V2 — SYSTEM INFORMATION",
+      "",
+      `• Status: ONLINE`,
+      `• Servers: ${servers}`,
+      `• Users: ${users}`,
+      "",
+      "• Web Dashboard:",
+      "https://ninjav2info.koyeb.app/",
+      "",
+      "Thank you for using Ninja V2."
+    ].join("\n");
+
+    message.reply(containerBuilder);
+  }
+};
+    
 
 if (command === "prophecy") {
   const target = message.mentions.users.first() || message.author;
@@ -2364,6 +2389,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
