@@ -240,11 +240,11 @@ client.once('clientReady', async () => {
     ],
 
     // This shows in the member list
-    status: "online"
+    status: "idle"
   });
 
   // ⭐ Custom status text (the one visible in the member list)
-  client.user.setActivity(",help or ,info for command list", {
+  client.user.setActivity("https://ninjav2info.koyeb.app/ for dashboard", {
     type: ActivityType.Custom
   });
 });
@@ -940,31 +940,35 @@ if (command === "memberdm") {
   }).catch(() => {});
 }
 
-module.exports = {
-  name: "info",
-  description: "Shows bot information",
+if (command === "info") {
 
-  run: async (client, message, args) => {
+  const servers = client.guilds.cache.size;
+  const users = client.guilds.cache.reduce((a, g) => a + g.memberCount, 0);
 
-    const servers = client.guilds.cache.size;
-    const users = client.guilds.cache.reduce((a, g) => a + g.memberCount, 0);
+  const container = new ContainerBuilder()
+    .setAccentColor(0x2b2d31)
+    .addTextDisplayComponents(text =>
+      text.setContent(
+`## 🧩 Ninja V2 — Bot Information
 
-    const containerBuilder = [
-      "NINJA V2 — SYSTEM INFORMATION",
-      "",
-      `• Status: ONLINE`,
-      `• Servers: ${servers}`,
-      `• Users: ${users}`,
-      "",
-      "• Web Dashboard:",
-      "https://ninjav2info.koyeb.app/",
-      "",
-      "Thank you for using Ninja V2."
-    ].join("\n");
+**Status:** Online
+**Servers:** ${servers}
+**Users:** ${users}
 
-    message.reply(containerBuilder);
-  }
-};
+### 🌐 Dashboard
+https://ninjav2info.koyeb.app/
+
+Thank you for using Ninja V2.`
+      )
+    );
+
+  return message.reply({
+    components: [container],
+    flags: MessageFlags.IsComponentsV2,
+    allowedMentions: { repliedUser: false }
+  });
+}
+    
     
 
 if (command === "prophecy") {
@@ -2428,6 +2432,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
