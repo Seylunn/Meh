@@ -1082,7 +1082,8 @@ Thank you for using Ninja V2.`
     }
 
 
-    if (command === "fm") {
+
+   if (command === "fm") {
   const username = args[0] || (await getFMUser(message.author.id));
 
   if (!username)
@@ -1090,36 +1091,31 @@ Thank you for using Ninja V2.`
 
   try {
     // Fetch recent track
-    const recentUrl = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${username}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`;
-    const recentRes = await fetch(recentUrl);
-    const recentData = await recentRes.json();
+    const url = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${username}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`;
 
-    if (!recentData.recenttracks?.track?.length)
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (!data.recenttracks?.track?.length)
       return message.reply("No tracks found for that user.");
 
-    const track = recentData.recenttracks.track[0];
+    const track = data.recenttracks.track[0];
     const nowPlaying = track["@attr"]?.nowplaying === "true";
 
     const artist = track.artist["#text"];
     const song = track.name;
     const album = track.album["#text"];
-    const cover = track.image?.[3]["#text"] || null;
-
-    // Fetch total scrobbles
-    const infoUrl = `https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${username}&api_key=${process.env.LASTFM_API_KEY}&format=json`;
-    const infoRes = await fetch(infoUrl);
-    const infoData = await infoRes.json();
-
-    const scrobbles = infoData?.user?.playcount || "0";
+    const cover = track.image?.[3]?.["#text"] || null;
 
     const embed = {
       color: 0x808080, // grey sidebar
       title: nowPlaying ? "🎧 Now Playing" : "🎵 Last Played",
-      description: `**${song}**\nby **${artist}**\nAlbum: *${album || "Unknown"}*\n\n📈 **Total Scrobbles:** ${Number(scrobbles).toLocaleString()}`,
+      description:
+        `**${song}**\n` +
+        `by **${artist}**\n` +
+        `Album: *${album || "Unknown"}*`,
       thumbnail: cover ? { url: cover } : null,
-      footer: {
-        text: `Last.fm • ${username}`
-      }
+      footer: { text: `Last.fm • ${username}` }
     };
 
     return message.reply({ embeds: [embed] });
@@ -1130,20 +1126,18 @@ Thank you for using Ninja V2.`
   }
     }
     
-
 if (command === "fmlb") {
   const input = args.join(" ");
 
-  // Get the invoking user's Last.fm username
-  const username = await getFMUser(message.author.id);
-  if (!username)
+  const requester = await getFMUser(message.author.id);
+  if (!requester)
     return message.reply("You need to set your Last.fm username using `,setfm <username>`");
 
   let artist, track;
 
-  // If no input → use now playing OR last played
+  // If no input → use now playing or last played
   if (!input) {
-    const recentUrl = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${username}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`;
+    const recentUrl = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${requester}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`;
     const recentRes = await fetch(recentUrl);
     const recentData = await recentRes.json();
 
@@ -1151,20 +1145,17 @@ if (command === "fmlb") {
       return message.reply("You haven't listened to anything recently.");
 
     const t = recentData.recenttracks.track[0];
-
     artist = t.artist["#text"];
     track = t.name;
   } else {
     // User provided input
     if (input.includes("-")) {
-      // Format: Artist - Track
       const parts = input.split("-");
       artist = parts[0].trim();
       track = parts[1].trim();
     } else {
-      // Only track name given → we must detect artist
-      // Fetch user's recent tracks and find a matching track
-      const searchUrl = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${username}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=50`;
+      // Only track name → detect artist from user's recent tracks
+      const searchUrl = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${requester}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=50`;
       const searchRes = await fetch(searchUrl);
       const searchData = await searchRes.json();
 
@@ -1173,17 +1164,24 @@ if (command === "fmlb") {
       );
 
       if (!match)
-        return message.reply("Couldn't detect the artist for that track. Try `Artist - Track`.");
+        return message.reply("Couldn't detect the artist. Try `Artist - Track`.");
 
       artist = match.artist["#text"];
       track = match.name;
     }
   }
 
-  // Get all users who have set their Last.fm username
-  const allUsers = await getAllFMUsers();
-  if (!allUsers.length)
-    return message.reply("No users have set their Last.fm usernames.");
+  // 🔥 NEW: Build user list from server members, NOT database
+  const guildMembers = await message.guild.members.fetch();
+  const fmUsers = [];
+
+  for (const member of guildMembers.values()) {
+    const fmName = await getFMUser(member.id);
+    if (fmName) fmUsers.push(fmName);
+  }
+
+  if (!fmUsers.length)
+    return message.reply("No one in this server has set their Last.fm username.");
 
   const API_KEY = process.env.LASTFM_API_KEY;
 
@@ -1198,21 +1196,14 @@ if (command === "fmlb") {
         username,
         plays: Number(data?.track?.userplaycount || 0)
       };
-    } catch (err) {
-      console.error(`Error fetching for ${username}:`, err);
+    } catch {
       return { username, plays: 0 };
     }
   }
 
-  // Fetch scrobbles for all users
-  const results = await Promise.all(
-    allUsers.map(u => getTrackScrobbles(u.username))
-  );
-
-  // Sort by plays
+  const results = await Promise.all(fmUsers.map(u => getTrackScrobbles(u)));
   const sorted = results.sort((a, b) => b.plays - a.plays);
 
-  // Build leaderboard text
   const lines = sorted
     .map((u, i) => `**${i + 1}.** ${u.username} — **${u.plays}** plays`)
     .join("\n");
@@ -1226,6 +1217,8 @@ if (command === "fmlb") {
 
   return message.reply({ embeds: [embed] });
 }
+    
+
     
 
     if (command === "pokemon") {
@@ -2616,6 +2609,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
