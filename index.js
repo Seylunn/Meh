@@ -307,7 +307,7 @@ const HELP_CATEGORIES = {
       { name: ',memberdm', desc: 'DM any user with the command' },
       { name: ',servericon', desc: 'show the servers icon' },
       { name: ',setfm', desc: 'link your last fm account' }, 
-      { name: ',fm', desc: 'shows what your playing with last fm },
+      { name: ',fm', desc: 'shows what your playing with last fm' },
       { name: ',uptime', desc: 'Bot uptime' }
     ]
   },
@@ -2617,6 +2617,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
