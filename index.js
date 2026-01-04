@@ -1129,7 +1129,102 @@ Thank you for using Ninja V2.`
     }
     
 
+if (command === "fmlb") {
+  const input = args.join(" ");
 
+  // Get the invoking user's Last.fm username
+  const username = await getFMUser(message.author.id);
+  if (!username)
+    return message.reply("You need to set your Last.fm username using `,setfm <username>`");
+
+  let artist, track;
+
+  // If no input → use now playing OR last played
+  if (!input) {
+    const recentUrl = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${username}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`;
+    const recentRes = await fetch(recentUrl);
+    const recentData = await recentRes.json();
+
+    if (!recentData.recenttracks?.track?.length)
+      return message.reply("You haven't listened to anything recently.");
+
+    const t = recentData.recenttracks.track[0];
+
+    artist = t.artist["#text"];
+    track = t.name;
+  } else {
+    // User provided input
+    if (input.includes("-")) {
+      // Format: Artist - Track
+      const parts = input.split("-");
+      artist = parts[0].trim();
+      track = parts[1].trim();
+    } else {
+      // Only track name given → we must detect artist
+      // Fetch user's recent tracks and find a matching track
+      const searchUrl = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${username}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=50`;
+      const searchRes = await fetch(searchUrl);
+      const searchData = await searchRes.json();
+
+      const match = searchData.recenttracks.track.find(t =>
+        t.name.toLowerCase() === input.toLowerCase()
+      );
+
+      if (!match)
+        return message.reply("Couldn't detect the artist for that track. Try `Artist - Track`.");
+
+      artist = match.artist["#text"];
+      track = match.name;
+    }
+  }
+
+  // Get all users who have set their Last.fm username
+  const allUsers = await getAllFMUsers();
+  if (!allUsers.length)
+    return message.reply("No users have set their Last.fm usernames.");
+
+  const API_KEY = process.env.LASTFM_API_KEY;
+
+  async function getTrackScrobbles(username) {
+    try {
+      const url = `https://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=${API_KEY}&artist=${encodeURIComponent(artist)}&track=${encodeURIComponent(track)}&username=${username}&format=json`;
+
+      const res = await fetch(url);
+      const data = await res.json();
+
+      return {
+        username,
+        plays: Number(data?.track?.userplaycount || 0)
+      };
+    } catch (err) {
+      console.error(`Error fetching for ${username}:`, err);
+      return { username, plays: 0 };
+    }
+  }
+
+  // Fetch scrobbles for all users
+  const results = await Promise.all(
+    allUsers.map(u => getTrackScrobbles(u.username))
+  );
+
+  // Sort by plays
+  const sorted = results.sort((a, b) => b.plays - a.plays);
+
+  // Build leaderboard text
+  const lines = sorted
+    .map((u, i) => `**${i + 1}.** ${u.username} — **${u.plays}** plays`)
+    .join("\n");
+
+  const embed = {
+    color: 0x808080,
+    title: `🎵 Track Leaderboard`,
+    description: `**${artist} — ${track}**\n\n${lines}`,
+    footer: { text: "Last.fm Track Leaderboard" }
+  };
+
+  return message.reply({ embeds: [embed] });
+}
+    
 
     if (command === "pokemon") {
       try {
@@ -2519,6 +2614,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
