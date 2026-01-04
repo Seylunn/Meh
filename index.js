@@ -1065,12 +1065,6 @@ if (command === "prophecy") {
 }
 
 
-const fmUserSchema = new mongoose.Schema({
-  userId: { type: String, required: true },
-  username: { type: String, required: true }
-});
-
-export default mongoose.model("FMUser", fmUserSchema);
     
 
 import FMUser from "./models/fmUser.js";
@@ -2530,6 +2524,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
