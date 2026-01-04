@@ -1126,7 +1126,6 @@ if (command === "fm") {
 
 
    
-
 if (command === "fmlb") {
   const input = args.join(" ");
 
@@ -1203,7 +1202,7 @@ if (command === "fmlb") {
   const results = await Promise.all(fmUsers.map(u => getTrackScrobbles(u)));
   const sorted = results.sort((a, b) => b.plays - a.plays);
 
-  // Pagination setup
+  // Pagination
   const pageSize = 5;
   let page = 0;
   const totalPages = Math.ceil(sorted.length / pageSize);
@@ -1225,28 +1224,32 @@ if (command === "fmlb") {
     };
   }
 
-  const row = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId("prev")
-      .setLabel("Previous")
-      .setStyle(ButtonStyle.Secondary)
-      .setDisabled(true),
-    new ButtonBuilder()
-      .setCustomId("next")
-      .setLabel("Next")
-      .setStyle(ButtonStyle.Secondary)
-      .setDisabled(totalPages <= 1)
-  );
+  const row = {
+    type: 1,
+    components: [
+      {
+        type: 2,
+        style: 2,
+        label: "Previous",
+        custom_id: "prev",
+        disabled: true
+      },
+      {
+        type: 2,
+        style: 2,
+        label: "Next",
+        custom_id: "next",
+        disabled: totalPages <= 1
+      }
+    ]
+  };
 
   const msg = await message.reply({
     embeds: [getPageEmbed(page)],
     components: [row]
   });
 
-  const collector = msg.createMessageComponentCollector({
-    componentType: ComponentType.Button,
-    time: 60_000
-  });
+  const collector = msg.createMessageComponentCollector({ time: 60000 });
 
   collector.on("collect", async interaction => {
     if (interaction.user.id !== message.author.id)
@@ -1255,8 +1258,8 @@ if (command === "fmlb") {
     if (interaction.customId === "next") page++;
     if (interaction.customId === "prev") page--;
 
-    row.components[0].setDisabled(page === 0);
-    row.components[1].setDisabled(page === totalPages - 1);
+    row.components[0].disabled = page === 0;
+    row.components[1].disabled = page === totalPages - 1;
 
     await interaction.update({
       embeds: [getPageEmbed(page)],
@@ -1265,10 +1268,13 @@ if (command === "fmlb") {
   });
 
   collector.on("end", () => {
-    row.components.forEach(btn => btn.setDisabled(true));
+    row.components.forEach(btn => btn.disabled = true);
     msg.edit({ components: [row] }).catch(() => {});
   });
-        }
+}
+
+
+    
                                 
 
     
@@ -2661,6 +2667,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
