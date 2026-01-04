@@ -306,6 +306,8 @@ const HELP_CATEGORIES = {
       { name: ',ownerinfo', desc: 'show the owners info' },
       { name: ',memberdm', desc: 'DM any user with the command' },
       { name: ',servericon', desc: 'show the servers icon' },
+      { name: ',setfm', desc: 'link your last fm account' }, 
+      { name: ',fm', desc: 'shows what your playing with last fm },
       { name: ',uptime', desc: 'Bot uptime' }
     ]
   },
@@ -324,6 +326,7 @@ const HELP_CATEGORIES = {
     title: 'Leaderboard Commands',
     commands: [
       { name: ',msglb', desc: 'Message leaderboard' },
+      { name: ',fmlb', desc: 'Show last fm scrobbles' },
       { name: ',afklb', desc: 'AFK leaderboard' }
     ]
   },
@@ -2614,6 +2617,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
