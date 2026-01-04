@@ -969,7 +969,7 @@ Thank you for using Ninja V2.`
   });
 }
     
-import fetch from "node-fetch";
+const response = await fetch("https://api.waifu.pics/sfw/waifu");
 
 if (command === "goon") {
   try {
@@ -2457,6 +2457,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
