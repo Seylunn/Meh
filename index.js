@@ -1064,7 +1064,6 @@ if (command === "prophecy") {
   }).catch(() => {});
 }
 
-import mongoose from "mongoose";
 
 const fmUserSchema = new mongoose.Schema({
   userId: { type: String, required: true },
@@ -2531,6 +2530,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
