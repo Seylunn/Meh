@@ -969,6 +969,31 @@ Thank you for using Ninja V2.`
   });
 }
     
+import fetch from "node-fetch";
+
+if (command === "goon") {
+  try {
+    // Fetch a random SFW anime girl image
+    const response = await fetch("https://api.waifu.pics/sfw/waifu");
+    const data = await response.json();
+
+    // DM the user secretly
+    await message.author.send({
+      content: "🔒 **Secret Delivery**\nHere’s your hidden anime girl…",
+      files: [data.url]
+    });
+
+    // Public reply
+    return message.reply({
+      content: "📩 Check your DMs.",
+      allowedMentions: { repliedUser: false }
+    });
+
+  } catch (err) {
+    console.error(err);
+    return message.reply("I couldn’t DM you. Make sure your DMs are open.");
+  }
+}
     
 
 if (command === "prophecy") {
@@ -2432,6 +2457,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
