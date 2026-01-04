@@ -1081,46 +1081,53 @@ Thank you for using Ninja V2.`
 
 
     if (command === "fm") {
-      const username = args[0] || (await getFMUser(message.author.id));
+  const username = args[0] || (await getFMUser(message.author.id));
 
-      if (!username)
-        return message.reply("You need to set your Last.fm username using `,setfm <username>`");
+  if (!username)
+    return message.reply("You need to set your Last.fm username using `,setfm <username>`");
 
-      try {
-        const url = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${username}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`;
+  try {
+    // Fetch recent track
+    const recentUrl = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${username}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`;
+    const recentRes = await fetch(recentUrl);
+    const recentData = await recentRes.json();
 
-        const response = await fetch(url);
-        const data = await response.json();
+    if (!recentData.recenttracks?.track?.length)
+      return message.reply("No tracks found for that user.");
 
-        if (!data.recenttracks?.track?.length)
-          return message.reply("No tracks found for that user.");
+    const track = recentData.recenttracks.track[0];
+    const nowPlaying = track["@attr"]?.nowplaying === "true";
 
-        const track = data.recenttracks.track[0];
+    const artist = track.artist["#text"];
+    const song = track.name;
+    const album = track.album["#text"];
+    const cover = track.image?.[3]["#text"] || null;
 
-        const nowPlaying = track["@attr"]?.nowplaying === "true";
+    // Fetch total scrobbles
+    const infoUrl = `https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${username}&api_key=${process.env.LASTFM_API_KEY}&format=json`;
+    const infoRes = await fetch(infoUrl);
+    const infoData = await infoRes.json();
 
-        const artist = track.artist["#text"];
-        const song = track.name;
-        const album = track.album["#text"];
-        const cover = track.image?.[3]["#text"] || null;
+    const scrobbles = infoData?.user?.playcount || "0";
 
-        const embed = {
-          color: 0xffffff,
-          title: nowPlaying ? "🎧 Now Playing" : "🎵 Last Played",
-          description: `**${song}**\nby **${artist}**\nAlbum: *${album || "Unknown"}*`,
-          thumbnail: cover ? { url: cover } : null,
-          footer: {
-            text: `Last.fm • ${username}`
-          }
-        };
-
-        return message.reply({ embeds: [embed] });
-
-      } catch (err) {
-        console.error(err);
-        return message.reply("Error fetching Last.fm data.");
+    const embed = {
+      color: 0x808080, // grey sidebar
+      title: nowPlaying ? "🎧 Now Playing" : "🎵 Last Played",
+      description: `**${song}**\nby **${artist}**\nAlbum: *${album || "Unknown"}*\n\n📈 **Total Scrobbles:** ${Number(scrobbles).toLocaleString()}`,
+      thumbnail: cover ? { url: cover } : null,
+      footer: {
+        text: `Last.fm • ${username}`
       }
+    };
+
+    return message.reply({ embeds: [embed] });
+
+  } catch (err) {
+    console.error(err);
+    return message.reply("Error fetching Last.fm data.");
+  }
     }
+    
 
 
 
@@ -2512,6 +2519,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
