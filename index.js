@@ -1185,7 +1185,7 @@ app.get("/lastfm/callback", async (req, res) => {
 // SIGNATURE GENERATOR
 // =========================
 
-import crypto from "crypto";
+const crypto = require("crypto");
 
 function generateSig(token) {
   const str =
@@ -2736,6 +2736,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
