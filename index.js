@@ -2684,153 +2684,233 @@ client.on('interactionCreate', async (interaction) => {
 });
 
 
-// Handle select menus
-if (interaction.isStringSelectMenu()) {
-  if (interaction.customId === "time_select") {
-    try {
-      const timezone = interaction.values[0];
-      
-      // Save timezone
-      const profile = await getUserProfile(interaction.user.id) || {};
-      profile.timezone = timezone;
-      await setUserProfile(interaction.user.id, profile);
-      
-      // Show confirmation with current time
-      const now = new Date().toLocaleString("en-US", { 
-        timeZone: timezone,
-        dateStyle: "full",
-        timeStyle: "long"
-      });
-      
-      const container = new ContainerBuilder()
-        .setDisplay(
-          new TextDisplayBuilder()
-            .setTitle("✅ Timezone Saved")
-            .setDescription(
-              `**Timezone:** ${timezone}\n` +
-              `**Current Time:** ${now}\n\n` +
-              `Use \`,time\` anytime to check your current time!`
-            )
-        );
-      
-      await interaction.update({
-        ui: [container],
-        components: []
-      });
-    } catch (error) {
-      console.error("Time select error:", error);
-      await interaction.reply({ content: "An error occurred!", ephemeral: true });
+
+  
+  // Handle select menus
+  if (interaction.isStringSelectMenu()) {
+    if (interaction.customId === "time_select") {
+      try {
+        const timezone = interaction.values[0];
+        
+        // Save timezone
+        const profile = await getUserProfile(interaction.user.id) || {};
+        profile.timezone = timezone;
+        await setUserProfile(interaction.user.id, profile);
+        
+        // Show confirmation with current time
+        const now = new Date().toLocaleString("en-US", { 
+          timeZone: timezone,
+          dateStyle: "full",
+          timeStyle: "long"
+        });
+        
+        const container = new ContainerBuilder()
+          .setDisplay(
+            new TextDisplayBuilder()
+              .setTitle("✅ Timezone Saved")
+              .setDescription(
+                `**Timezone:** ${timezone}\n` +
+                `**Current Time:** ${now}\n\n` +
+                `Use \`,time\` anytime to check your current time!`
+              )
+          );
+        
+        await interaction.update({
+          ui: [container],
+          components: []
+        });
+      } catch (error) {
+        console.error("Time select error:", error);
+        await interaction.reply({ content: "An error occurred!", ephemeral: true });
+      }
     }
   }
-}
+  
+  // Handle buttons
+  if (interaction.isButton()) {
+    
+    // Changelog buttons
+    if (interaction.customId.startsWith('cl_')) {
+      try {
+        if (!changelog || !Array.isArray(changelog) || changelog.length === 0) {
+          return interaction.reply({ content: "No changelog entries found!", ephemeral: true });
+        }
 
-// Handle time change button
-if (interaction.customId === "time_change") {
-  try {
-    const container = new ContainerBuilder()
-      .setDisplay(
-        new TextDisplayBuilder()
-          .setTitle("⏰ Select Your Timezone")
-          .setDescription("Choose your timezone from the menu below to update it.")
-      );
-    
-    const timezones = [
-      // Americas
-      { label: "🌎 Eastern Time (New York)", value: "America/New_York" },
-      { label: "🌎 Central Time (Chicago)", value: "America/Chicago" },
-      { label: "🌎 Mountain Time (Denver)", value: "America/Denver" },
-      { label: "🌎 Pacific Time (Los Angeles)", value: "America/Los_Angeles" },
-      { label: "🌎 Alaska Time", value: "America/Anchorage" },
-      { label: "🌎 Hawaii Time", value: "Pacific/Honolulu" },
-      { label: "🌎 Toronto", value: "America/Toronto" },
-      { label: "🌎 Mexico City", value: "America/Mexico_City" },
-      { label: "🌎 São Paulo", value: "America/Sao_Paulo" },
-      { label: "🌎 Buenos Aires", value: "America/Argentina/Buenos_Aires" },
-      
-      // Europe
-      { label: "🌍 London (GMT)", value: "Europe/London" },
-      { label: "🌍 Paris (CET)", value: "Europe/Paris" },
-      { label: "🌍 Berlin", value: "Europe/Berlin" },
-      { label: "🌍 Rome", value: "Europe/Rome" },
-      { label: "🌍 Madrid", value: "Europe/Madrid" },
-      { label: "🌍 Amsterdam", value: "Europe/Amsterdam" },
-      { label: "🌍 Brussels", value: "Europe/Brussels" },
-      { label: "🌍 Vienna", value: "Europe/Vienna" },
-      { label: "🌍 Warsaw", value: "Europe/Warsaw" },
-      { label: "🌍 Athens", value: "Europe/Athens" },
-      { label: "🌍 Istanbul", value: "Europe/Istanbul" },
-      { label: "🌍 Moscow", value: "Europe/Moscow" },
-      
-      // Asia
-      { label: "🌏 Dubai", value: "Asia/Dubai" },
-      { label: "🌏 Mumbai", value: "Asia/Kolkata" },
-      { label: "🌏 Bangkok", value: "Asia/Bangkok" },
-      { label: "🌏 Singapore", value: "Asia/Singapore" },
-      { label: "🌏 Hong Kong", value: "Asia/Hong_Kong" },
-      { label: "🌏 Shanghai", value: "Asia/Shanghai" },
-      { label: "🌏 Tokyo", value: "Asia/Tokyo" },
-      { label: "🌏 Seoul", value: "Asia/Seoul" },
-      
-      // Oceania
-      { label: "🌏 Sydney", value: "Australia/Sydney" },
-      { label: "🌏 Melbourne", value: "Australia/Melbourne" },
-      { label: "🌏 Brisbane", value: "Australia/Brisbane" },
-      { label: "🌏 Perth", value: "Australia/Perth" },
-      { label: "🌏 Auckland", value: "Pacific/Auckland" },
-      
-      // Africa
-      { label: "🌍 Cairo", value: "Africa/Cairo" },
-      { label: "🌍 Johannesburg", value: "Africa/Johannesburg" },
-      { label: "🌍 Lagos", value: "Africa/Lagos" },
-      { label: "🌍 Nairobi", value: "Africa/Nairobi" }
-    ];
-    
-    const selectMenu = new StringSelectMenuBuilder()
-      .setCustomId("time_select")
-      .setPlaceholder("Select your timezone")
-      .addOptions(timezones);
-    
-    const row = {
-      type: 1,
-      components: [selectMenu]
-    };
-    
-    await interaction.update({
-      ui: [container],
-      components: [row]
-    });
-  } catch (error) {
-    console.error("Time change button error:", error);
-    await interaction.reply({ content: "An error occurred!", ephemeral: true });
-  }
-}
+        let page = 0;
 
-// Handle time unlink button
-if (interaction.customId === "time_unlink") {
-  try {
-    const profile = await getUserProfile(interaction.user.id);
-    
-    if (profile) {
-      profile.timezone = null;
-      await setUserProfile(interaction.user.id, profile);
+        if (interaction.customId.startsWith('cl_prev_')) {
+          page = parseInt(interaction.customId.split('_')[2]) - 1;
+          page = Math.max(0, page);
+        } else if (interaction.customId.startsWith('cl_next_')) {
+          page = parseInt(interaction.customId.split('_')[2]) + 1;
+          page = Math.min(changelog.length - 1, page);
+        } else if (interaction.customId === 'cl_latest') {
+          page = 0;
+        }
+
+        const entry = changelog[page];
+
+        if (!entry || !entry.title || !entry.version || !entry.date || !entry.changes) {
+          return interaction.reply({ content: "Invalid changelog entry!", ephemeral: true });
+        }
+
+        const container = new ContainerBuilder()
+          .setDisplay(
+            new TextDisplayBuilder()
+              .setTitle(entry.title)
+              .setDescription(
+                `**Version:** \`${entry.version}\`\n` +
+                `**Date:** \`${entry.date}\`\n\n` +
+                entry.changes.map(c => `• ${c}`).join("\n") +
+                `\n\n*Page ${page + 1} of ${changelog.length}*`
+              )
+          );
+
+        const row = {
+          type: 1,
+          components: [
+            new ButtonBuilder()
+              .setCustomId(`cl_prev_${page}`)
+              .setLabel("Previous")
+              .setStyle(ButtonStyle.Secondary)
+              .setDisabled(page === 0),
+
+            new ButtonBuilder()
+              .setCustomId(`cl_next_${page}`)
+              .setLabel("Next")
+              .setStyle(ButtonStyle.Secondary)
+              .setDisabled(page === changelog.length - 1),
+
+            new ButtonBuilder()
+              .setCustomId("cl_latest")
+              .setLabel("Latest")
+              .setStyle(ButtonStyle.Primary)
+              .setDisabled(page === 0)
+          ]
+        };
+
+        await interaction.update({
+          components: [row],
+          ui: [container]
+        });
+      } catch (error) {
+        console.error("Changelog interaction error:", error);
+        await interaction.reply({ content: "An error occurred!", ephemeral: true }).catch(() => {});
+      }
     }
     
-    const container = new ContainerBuilder()
-      .setDisplay(
-        new TextDisplayBuilder()
-          .setTitle("✅ Timezone Removed")
-          .setDescription("Your timezone has been removed successfully.")
-      );
+    // Time change button
+    if (interaction.customId === "time_change") {
+      try {
+        const container = new ContainerBuilder()
+          .setDisplay(
+            new TextDisplayBuilder()
+              .setTitle("⏰ Select Your Timezone")
+              .setDescription("Choose your timezone from the menu below to update it.")
+          );
+        
+        const timezones = [
+          // Americas
+          { label: "🌎 Eastern Time (New York)", value: "America/New_York" },
+          { label: "🌎 Central Time (Chicago)", value: "America/Chicago" },
+          { label: "🌎 Mountain Time (Denver)", value: "America/Denver" },
+          { label: "🌎 Pacific Time (Los Angeles)", value: "America/Los_Angeles" },
+          { label: "🌎 Alaska Time", value: "America/Anchorage" },
+          { label: "🌎 Hawaii Time", value: "Pacific/Honolulu" },
+          { label: "🌎 Toronto", value: "America/Toronto" },
+          { label: "🌎 Mexico City", value: "America/Mexico_City" },
+          { label: "🌎 São Paulo", value: "America/Sao_Paulo" },
+          { label: "🌎 Buenos Aires", value: "America/Argentina/Buenos_Aires" },
+          
+          // Europe
+          { label: "🌍 London (GMT)", value: "Europe/London" },
+          { label: "🌍 Paris (CET)", value: "Europe/Paris" },
+          { label: "🌍 Berlin", value: "Europe/Berlin" },
+          { label: "🌍 Rome", value: "Europe/Rome" },
+          { label: "🌍 Madrid", value: "Europe/Madrid" },
+          { label: "🌍 Amsterdam", value: "Europe/Amsterdam" },
+          { label: "🌍 Brussels", value: "Europe/Brussels" },
+          { label: "🌍 Vienna", value: "Europe/Vienna" },
+          { label: "🌍 Warsaw", value: "Europe/Warsaw" },
+          { label: "🌍 Athens", value: "Europe/Athens" },
+          { label: "🌍 Istanbul", value: "Europe/Istanbul" },
+          { label: "🌍 Moscow", value: "Europe/Moscow" },
+          
+          // Asia
+          { label: "🌏 Dubai", value: "Asia/Dubai" },
+          { label: "🌏 Mumbai", value: "Asia/Kolkata" },
+          { label: "🌏 Bangkok", value: "Asia/Bangkok" },
+          { label: "🌏 Singapore", value: "Asia/Singapore" },
+          { label: "🌏 Hong Kong", value: "Asia/Hong_Kong" },
+          { label: "🌏 Shanghai", value: "Asia/Shanghai" },
+          { label: "🌏 Tokyo", value: "Asia/Tokyo" },
+          { label: "🌏 Seoul", value: "Asia/Seoul" },
+          
+          // Oceania
+          { label: "🌏 Sydney", value: "Australia/Sydney" },
+          { label: "🌏 Melbourne", value: "Australia/Melbourne" },
+          { label: "🌏 Brisbane", value: "Australia/Brisbane" },
+          { label: "🌏 Perth", value: "Australia/Perth" },
+          { label: "🌏 Auckland", value: "Pacific/Auckland" },
+          
+          // Africa
+          { label: "🌍 Cairo", value: "Africa/Cairo" },
+          { label: "🌍 Johannesburg", value: "Africa/Johannesburg" },
+          { label: "🌍 Lagos", value: "Africa/Lagos" },
+          { label: "🌍 Nairobi", value: "Africa/Nairobi" }
+        ];
+        
+        const selectMenu = new StringSelectMenuBuilder()
+          .setCustomId("time_select")
+          .setPlaceholder("Select your timezone")
+          .addOptions(timezones);
+        
+        const row = {
+          type: 1,
+          components: [selectMenu]
+        };
+        
+        await interaction.update({
+          ui: [container],
+          components: [row]
+        });
+      } catch (error) {
+        console.error("Time change button error:", error);
+        await interaction.reply({ content: "An error occurred!", ephemeral: true });
+      }
+    }
     
-    await interaction.update({
-      ui: [container],
-      components: []
-    });
-  } catch (error) {
-    console.error("Time unlink button error:", error);
-    await interaction.reply({ content: "An error occurred!", ephemeral: true });
+    // Time unlink button
+    if (interaction.customId === "time_unlink") {
+      try {
+        const profile = await getUserProfile(interaction.user.id);
+        
+        if (profile) {
+          profile.timezone = null;
+          await setUserProfile(interaction.user.id, profile);
+        }
+        
+        const container = new ContainerBuilder()
+          .setDisplay(
+            new TextDisplayBuilder()
+              .setTitle("✅ Timezone Removed")
+              .setDescription("Your timezone has been removed successfully.")
+          );
+        
+        await interaction.update({
+          ui: [container],
+          components: []
+        });
+      } catch (error) {
+        console.error("Time unlink button error:", error);
+        await interaction.reply({ content: "An error occurred!", ephemeral: true });
+      }
+    }
+    
   }
-}
+});
+
+
     // ============================================================
     // LEADERBOARD BUTTONS (AFK + MSG)
     // ============================================================
@@ -2916,6 +2996,7 @@ if (interaction.customId === "time_unlink") {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
