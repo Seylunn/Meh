@@ -2681,7 +2681,7 @@ client.on('interactionCreate', async (interaction) => {
     await interaction.reply({ content: "An error occurred!", ephemeral: true });
   }
 }
-
+});
 
 
 // Handle select menus
@@ -2916,6 +2916,7 @@ if (interaction.customId === "time_unlink") {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
