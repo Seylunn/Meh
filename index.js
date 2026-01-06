@@ -27,7 +27,8 @@ import {
   MediaGalleryBuilder,
   MediaGalleryItemBuilder,
   SeparatorSpacingSize,
-  MessageFlags
+  MessageFlags,
+  ActionRowBuilder
 } from 'discord.js';
 import fetch from 'node-fetch';
 let lastRestartChannel = null;
