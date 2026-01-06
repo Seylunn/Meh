@@ -791,14 +791,13 @@ if (command === "changelog") {
   const container = new ContainerBuilder()
     .setDisplay(
       new TextDisplayBuilder()
-        .setTitle(entry.title)
+        .setTile(entry.title)
         .setDescription(
           `**Version:** \`${entry.version}\`\n` +
           `**Date:** \`${entry.date}\`\n\n` +
           entry.changes.map(c => `• ${c}`).join("\n")
         )
-    )
-    .setFooter(`Page ${page + 1} of ${changelog.length}`);
+    );
 
   const row = {
     type: 1,
@@ -822,10 +821,10 @@ if (command === "changelog") {
 
   return message.reply({
     components: [row],
-    embeds: [],
-    ui: [container] // THIS is the new v2 UI system
+    ui: [container]
   });
 }
+    
     
     
     
@@ -2436,7 +2435,8 @@ client.on('interactionCreate', async (interaction) => {
       return interaction.update({ components: [container], flags: MessageFlags.IsComponentsV2 });
     }
 
-  client.on("interactionCreate", async i => {
+    
+      client.on("interactionCreate", async i => {
   if (!i.isButton()) return;
 
   try {
@@ -2451,14 +2451,13 @@ client.on('interactionCreate', async (interaction) => {
     const container = new ContainerBuilder()
       .setDisplay(
         new TextDisplayBuilder()
-          .setTitle(entry.title)
+          .setTile(entry.title)
           .setDescription(
             `**Version:** \`${entry.version}\`\n` +
             `**Date:** \`${entry.date}\`\n\n` +
             entry.changes.map(c => `• ${c}`).join("\n")
           )
-      )
-      .setFooter(`Page ${page + 1} of ${changelog.length}`);
+      );
 
     const row = {
       type: 1,
@@ -2482,7 +2481,6 @@ client.on('interactionCreate', async (interaction) => {
 
     await i.update({
       components: [row],
-      embeds: [],
       ui: [container]
     });
 
@@ -2491,7 +2489,6 @@ client.on('interactionCreate', async (interaction) => {
   }
 });
     
-      
     // ============================================================
     // LEADERBOARD BUTTONS (AFK + MSG)
     // ============================================================
@@ -2577,6 +2574,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
