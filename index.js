@@ -805,20 +805,24 @@ Thank you for using Ninja V2.`
     }
 
     const container = new ContainerBuilder()
-      .setDisplay(
+      .addTextDisplayComponents(
         new TextDisplayBuilder()
-          .setTitle(entry.title)
-          .setDescription(
-            `**Version:** \`${entry.version}\`\n` +
-            `**Date:** \`${entry.date}\`\n\n` +
-            entry.changes.map(c => `• ${c}`).join("\n") +
-            `\n\n*Page ${page + 1} of ${changelog.length}*`
-          )
+          .setContent(`## ${entry.title}\n**Version:** \`${entry.version}\`\n**Date:** \`${entry.date}\``)
+      )
+      .addSeparatorComponents(
+        new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
+      )
+      .addTextDisplayComponents(
+        new TextDisplayBuilder()
+          .setContent(entry.changes.map(c => `• ${c}`).join("\n"))
+      )
+      .addTextDisplayComponents(
+        new TextDisplayBuilder()
+          .setContent(`*Page ${page + 1} of ${changelog.length}*`)
       );
 
-    const row = {
-      type: 1,
-      components: [
+    const row = new ActionRowBuilder()
+      .addComponents(
         new ButtonBuilder()
           .setCustomId(`cl_prev_${page}`)
           .setLabel("Previous")
@@ -836,12 +840,13 @@ Thank you for using Ninja V2.`
           .setLabel("Latest")
           .setStyle(ButtonStyle.Primary)
           .setDisabled(page === 0)
-      ]
-    };
+      );
+
+    container.addActionRowComponents(row);
 
     return message.reply({
-      components: [row],
-      ui: [container]
+      components: [container],
+      flags: MessageFlags.IsComponentsV2
     });
   } catch (error) {
     console.error("Changelog command error:", error);
