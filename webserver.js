@@ -40,6 +40,7 @@ export function startWebserver(client) {
               { name: ",ownerinfo", desc: "show the owners info" },
               { name: ",memberdm", desc: "DM any user with the command" },
               { name: ",servericon", desc: "show the servers icon" },
+              { name: ",changelog", desc: "show all bot updates" },
               { name: ",uptime", desc: "Bot uptime" }
             ]
           },
