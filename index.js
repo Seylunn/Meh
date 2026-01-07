@@ -920,7 +920,166 @@ Thank you for using Ninja V2.`
         allowedMentions: { repliedUser: false }
       });
     }
-1
+if (command === "time") {
+  try {
+    const profile = await getUserProfile(message.author.id);
+    
+    if (profile && profile.timezone) {
+      // Show their current time
+      try {
+        const now = new Date().toLocaleString("en-US", { 
+          timeZone: profile.timezone,
+          dateStyle: "full",
+          timeStyle: "long"
+        });
+        
+        const container = new ContainerBuilder()
+          .addTextDisplayComponents(
+            (text) => text.setContent("⏰ **Your Time**"),
+            (text) => text.setContent(
+              `**Timezone:** ${profile.timezone}\n` +
+              `**Current Time:** ${now}`
+            )
+          )
+          .addActionRowComponents((row) =>
+            row.addComponents(
+              new ButtonBuilder()
+                .setCustomId("time_change")
+                .setLabel("Change Timezone")
+                .setStyle(ButtonStyle.Primary),
+              
+              new ButtonBuilder()
+                .setCustomId("time_unlink")
+                .setLabel("Remove Timezone")
+                .setStyle(ButtonStyle.Danger)
+            )
+          );
+        
+        return message.reply({
+          components: [container],
+          flags: MessageFlags.IsComponentsV2
+        });
+      } catch (err) {
+        // Invalid saved timezone, show selector
+      }
+    }
+    
+    // Show timezone selector
+    const container = new ContainerBuilder()
+      .addTextDisplayComponents(
+        (text) => text.setContent("⏰ **Select Your Timezone**"),
+        (text) => text.setContent("Choose your timezone from the menu below to save it.")
+      );
+    
+    const timezones = [
+      // Americas
+      { label: "🌎 Eastern Time (New York)", value: "America/New_York" },
+      { label: "🌎 Central Time (Chicago)", value: "America/Chicago" },
+      { label: "🌎 Mountain Time (Denver)", value: "America/Denver" },
+      { label: "🌎 Pacific Time (Los Angeles)", value: "America/Los_Angeles" },
+      { label: "🌎 Alaska Time", value: "America/Anchorage" },
+      { label: "🌎 Hawaii Time", value: "Pacific/Honolulu" },
+      { label: "🌎 Toronto", value: "America/Toronto" },
+      { label: "🌎 Mexico City", value: "America/Mexico_City" },
+      { label: "🌎 São Paulo", value: "America/Sao_Paulo" },
+      { label: "🌎 Buenos Aires", value: "America/Argentina/Buenos_Aires" },
+      
+      // Europe
+      { label: "🌍 London (GMT)", value: "Europe/London" },
+      { label: "🌍 Paris (CET)", value: "Europe/Paris" },
+      { label: "🌍 Berlin", value: "Europe/Berlin" },
+      { label: "🌍 Rome", value: "Europe/Rome" },
+      { label: "🌍 Madrid", value: "Europe/Madrid" },
+      { label: "🌍 Amsterdam", value: "Europe/Amsterdam" },
+      { label: "🌍 Brussels", value: "Europe/Brussels" },
+      { label: "🌍 Vienna", value: "Europe/Vienna" },
+      { label: "🌍 Warsaw", value: "Europe/Warsaw" },
+      { label: "🌍 Athens", value: "Europe/Athens" },
+      { label: "🌍 Istanbul", value: "Europe/Istanbul" },
+      { label: "🌍 Moscow", value: "Europe/Moscow" },
+      
+      // Asia
+      { label: "🌏 Dubai", value: "Asia/Dubai" },
+      { label: "🌏 Mumbai", value: "Asia/Kolkata" },
+      { label: "🌏 Bangkok", value: "Asia/Bangkok" },
+      { label: "🌏 Singapore", value: "Asia/Singapore" },
+      { label: "🌏 Hong Kong", value: "Asia/Hong_Kong" },
+      { label: "🌏 Shanghai", value: "Asia/Shanghai" },
+      { label: "🌏 Tokyo", value: "Asia/Tokyo" },
+      { label: "🌏 Seoul", value: "Asia/Seoul" },
+      
+      // Oceania
+      { label: "🌏 Sydney", value: "Australia/Sydney" },
+      { label: "🌏 Melbourne", value: "Australia/Melbourne" },
+      { label: "🌏 Brisbane", value: "Australia/Brisbane" },
+      { label: "🌏 Perth", value: "Australia/Perth" },
+      { label: "🌏 Auckland", value: "Pacific/Auckland" },
+      
+      // Africa
+      { label: "🌍 Cairo", value: "Africa/Cairo" },
+      { label: "🌍 Johannesburg", value: "Africa/Johannesburg" },
+      { label: "🌍 Lagos", value: "Africa/Lagos" },
+      { label: "🌍 Nairobi", value: "Africa/Nairobi" }
+    ];
+    
+    const selectMenu = new StringSelectMenuBuilder()
+      .setCustomId("time_select")
+      .setPlaceholder("Select your timezone")
+      .addOptions(timezones);
+    
+    const row = {
+      type: 1,
+      components: [selectMenu]
+    };
+    
+    return message.reply({
+      components: [container, row],
+      flags: MessageFlags.IsComponentsV2
+    });
+    
+  } catch (error) {
+    console.error("Time command error:", error);
+    return message.reply("An error occurred while loading the timezone selector.");
+  }
+}
+
+// ===== TIMEUNLINK COMMAND (FIXED) =====
+if (command === "timeunlink") {
+  try {
+    const profile = await getUserProfile(message.author.id);
+    
+    if (!profile || !profile.timezone) {
+      const container = new ContainerBuilder()
+        .addTextDisplayComponents(
+          (text) => text.setContent("❌ **No Timezone Set**"),
+          (text) => text.setContent("You don't have a timezone saved. Use `,time` to set one!")
+        );
+      
+      return message.reply({ 
+        components: [container],
+        flags: MessageFlags.IsComponentsV2
+      });
+    }
+    
+    profile.timezone = null;
+    await setUserProfile(message.author.id, profile);
+    
+    const container = new ContainerBuilder()
+      .addTextDisplayComponents(
+        (text) => text.setContent("✅ **Timezone Removed**"),
+        (text) => text.setContent("Your timezone has been removed successfully.")
+      );
+    
+    return message.reply({ 
+      components: [container],
+      flags: MessageFlags.IsComponentsV2
+    });
+    
+  } catch (error) {
+    console.error("Timeunlink command error:", error);
+    return message.reply("An error occurred while removing your timezone.");
+  }
+}
 
 
     if (command === "memberdm") {
@@ -2692,6 +2851,7 @@ Thank you for using Ninja V2.`
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
