@@ -33,18 +33,25 @@ import {
 import fetch from 'node-fetch';
 let lastRestartChannel = null;
 
+
 const changelog = [
   {
+    title: "Initial Release",
     version: "1.0.0",
-    date: "2026-01-06",
-    title: "Main Improvements",
-    changes: [
-      "Added a ,changelog command",
-      "Fixed afk storing",
-      "Fixed the bots persona",
-    ]
-  }
-];
+    date: "2026-01-01",
+    changes: ["Fixed afk storage","Added a ,changelog command"],
+  },
+  {
+    title: "Bug Fixes",
+    version: "1.0.1",
+    date: "2026-01-03",
+    changes: ["Added 25+ timezones", "Added ,settz command ", "added a ,time command","Added a ,tzunlink command"],
+  },
+  ];
+    
+    
+    
+  
 
 /* ===================== CONFIG ===================== */
 
@@ -323,6 +330,9 @@ const HELP_CATEGORIES = {
       { name: ',memberdm', desc: 'DM any user with the command' },
       { name: ',servericon', desc: 'show the servers icon' },
       { name: ',changelog', desc: 'show all bot updates' },
+      { name: ',settz', desc: 'set your timezone with a valid country' },
+      { name: ',time', desc: 'shows time and allows you to change tz' },
+      { name: ',unlinktime', desc: 'unlink your timezone' },
       { name: ',uptime', desc: 'Bot uptime' }
     ]
   },
@@ -2925,6 +2935,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
