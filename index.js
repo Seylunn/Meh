@@ -2569,127 +2569,12 @@ Thank you for using Ninja V2.`
   }
 });
 
-// ===================== INTERACTION HANDLER ===================== //
-
-client.on('interactionCreate', async (interaction) => {
+                client.on('interactionCreate', async (interaction) => {
   try {
-    // ============================================================
-    // HELP MENU (wide layout)
-    // ============================================================
-    if (interaction.isStringSelectMenu() && interaction.customId === 'help-menu') {
-      const cat = HELP_CATEGORIES[interaction.values[0]];
-      if (!cat) return;
-
-      const botName = client.user.username;
-      const commandList = cat.commands.map(c => `**${c.name}** - ${c.desc}`).join('\n');
-
-      const container = new ContainerBuilder()
-        .setAccentColor(0x2b2d31)
-        .addTextDisplayComponents(
-          (text) => text.setContent(`**${cat.emoji} ${cat.title}**`),
-          (text) => text.setContent(commandList)
-        )
-        .addSeparatorComponents((sep) => sep.setDivider(true))
-        .addActionRowComponents((row) => row.addComponents(createHelpDropdown()))
-        .addTextDisplayComponents((text) => text.setContent(`-# ${botName} • Help System`));
-
-      return interaction.update({ components: [container], flags: MessageFlags.IsComponentsV2 });
-    }
-
-    // ===== BUTTON INTERACTION HANDLER =====
-// Put this in your interactionCreate event handler
-client.on('interactionCreate', async (interaction) => {
-  if (!interaction.isButton()) return;
-
-  const customId = interaction.customId;
-
-  // Changelog button handlers
-  if (customId.startsWith('cl_')) {
-    if (!changelog || changelog.length === 0) {
-      return interaction.reply({ content: "No changelog entries found!", ephemeral: true });
-    }
-
-    let page = 0;
-
-    if (customId.startsWith('cl_prev_')) {
-      page = parseInt(customId.split('_')[2]) - 1;
-      page = Math.max(0, page);
-    } else if (customId.startsWith('cl_next_')) {
-      page = parseInt(customId.split('_')[2]) + 1;
-      page = Math.min(changelog.length - 1, page);
-    } else if (customId === 'cl_latest') {
-      page = 0;
-    }
-
-    const entry = changelog[page];
-
-    const container = new ContainerBuilder()
-      .setDisplay(
-        new TextDisplayBuilder()
-          .set.title(entry.title)
-          .set.description(
-            `**Version:** \`${entry.version}\`\n` +
-            `**Date:** \`${entry.date}\`\n\n` +
-            entry.changes.map(c => `• ${c}`).join("\n") +
-            `\n\n*Page ${page + 1} of ${changelog.length}*`
-          )
-      );
-
-    const row = {
-      type: 1,
-      components: [
-        new ButtonBuilder()
-          .setCustomId(`cl_prev_${page}`)
-          .setLabel("Previous")
-          .setStyle(ButtonStyle.Secondary)
-          .setDisabled(page === 0),
-
-        new ButtonBuilder()
-          .setCustomId(`cl_next_${page}`)
-          .setLabel("Next")
-          .setStyle(ButtonStyle.Secondary)
-          .setDisabled(page === changelog.length - 1),
-
-        new ButtonBuilder()
-          .setCustomId("cl_latest")
-          .setLabel("Latest")
-          .setStyle(ButtonStyle.Primary)
-          .setDisabled(page === 0)
-      ]
-    };
-
-    await interaction.update({
-      components: [row],
-      ui: [container]
-    });
-  }
-}); 
-        
     
-
-    const row = {
-      type: 1,
-      components: [selectMenu]
-    };
-    
-    await interaction.update({
-      ui: [container],
-      components: [row]
-    });
-  } catch (error) {
-    console.error("Time change button error:", error);
-    await interaction.reply({ content: "An error occurred!", ephemeral: true });
-  }
-}
-});
-
-
-
-  
-  // Handle select menus
-  if (interaction.isStringSelectMenu()) {
-    if (interaction.customId === "time_select") {
-      try {
+    // Handle select menus
+    if (interaction.isStringSelectMenu()) {
+      if (interaction.customId === "time_select") {
         const timezone = interaction.values[0];
         
         // Save timezone
@@ -2715,36 +2600,32 @@ client.on('interactionCreate', async (interaction) => {
               )
           );
         
-        await interaction.update({
+        return interaction.update({
           ui: [container],
           components: []
         });
-      } catch (error) {
-        console.error("Time select error:", error);
-        await interaction.reply({ content: "An error occurred!", ephemeral: true });
       }
     }
-  }
-  
-  // Handle buttons
-  if (interaction.isButton()) {
     
-    // Changelog buttons
-    if (interaction.customId.startsWith('cl_')) {
-      try {
+    // Handle buttons
+    if (interaction.isButton()) {
+      const customId = interaction.customId;
+      
+      // Changelog buttons
+      if (customId.startsWith('cl_')) {
         if (!changelog || !Array.isArray(changelog) || changelog.length === 0) {
           return interaction.reply({ content: "No changelog entries found!", ephemeral: true });
         }
 
         let page = 0;
 
-        if (interaction.customId.startsWith('cl_prev_')) {
-          page = parseInt(interaction.customId.split('_')[2]) - 1;
+        if (customId.startsWith('cl_prev_')) {
+          page = parseInt(customId.split('_')[2]) - 1;
           page = Math.max(0, page);
-        } else if (interaction.customId.startsWith('cl_next_')) {
-          page = parseInt(interaction.customId.split('_')[2]) + 1;
+        } else if (customId.startsWith('cl_next_')) {
+          page = parseInt(customId.split('_')[2]) + 1;
           page = Math.min(changelog.length - 1, page);
-        } else if (interaction.customId === 'cl_latest') {
+        } else if (customId === 'cl_latest') {
           page = 0;
         }
 
@@ -2789,19 +2670,14 @@ client.on('interactionCreate', async (interaction) => {
           ]
         };
 
-        await interaction.update({
+        return interaction.update({
           components: [row],
           ui: [container]
         });
-      } catch (error) {
-        console.error("Changelog interaction error:", error);
-        await interaction.reply({ content: "An error occurred!", ephemeral: true }).catch(() => {});
       }
-    }
-    
-    // Time change button
-    if (interaction.customId === "time_change") {
-      try {
+      
+      // Time change button
+      if (customId === "time_change") {
         const container = new ContainerBuilder()
           .setDisplay(
             new TextDisplayBuilder()
@@ -2870,19 +2746,14 @@ client.on('interactionCreate', async (interaction) => {
           components: [selectMenu]
         };
         
-        await interaction.update({
+        return interaction.update({
           ui: [container],
           components: [row]
         });
-      } catch (error) {
-        console.error("Time change button error:", error);
-        await interaction.reply({ content: "An error occurred!", ephemeral: true });
       }
-    }
-    
-    // Time unlink button
-    if (interaction.customId === "time_unlink") {
-      try {
+      
+      // Time unlink button
+      if (customId === "time_unlink") {
         const profile = await getUserProfile(interaction.user.id);
         
         if (profile) {
@@ -2897,105 +2768,92 @@ client.on('interactionCreate', async (interaction) => {
               .setDescription("Your timezone has been removed successfully.")
           );
         
-        await interaction.update({
+        return interaction.update({
           ui: [container],
           components: []
         });
-      } catch (error) {
-        console.error("Time unlink button error:", error);
-        await interaction.reply({ content: "An error occurred!", ephemeral: true });
+      }
+      
+      // Leaderboard buttons
+      const type = customId.split(':')[0];
+      if (type.startsWith('afk_') || type.startsWith('msg_')) {
+        const data = leaderboardPages.get(interaction.message.id);
+        if (!data) return interaction.reply({ content: 'Leaderboard expired. Run the command again.', ephemeral: true });
+
+        let { page, isAfk, isMsg } = data;
+        let entries = [];
+
+        if (isAfk) {
+          const all = await getAllAfkData();
+          entries = Object.entries(all)
+            .map(([k, v]) => {
+              const userId = k.split(':')[1];
+              return [userId, v.totalTime || 0];
+            })
+            .sort((a, b) => b[1] - a[1]);
+        } else if (isMsg) {
+          const all = await getAllMsgCounts();
+          entries = Object.entries(all)
+            .map(([k, count]) => {
+              const oduserId = k.split(':')[1];
+              return [oduserId, count];
+            })
+            .sort((a, b) => b[1] - a[1]);
+        }
+
+        const pageSize = 10;
+        const totalPages = Math.ceil(entries.length / pageSize);
+
+        if (type.endsWith('next') && page < totalPages - 1) page++;
+        if (type.endsWith('prev') && page > 0) page--;
+
+        data.page = page;
+        leaderboardPages.set(interaction.message.id, data);
+
+        const start = page * pageSize;
+        const pageEntries = entries.slice(start, start + pageSize);
+
+        const lines = pageEntries.map(([oduserId, value], i) => {
+          const rank = start + i + 1;
+          if (isAfk) return `**${rank}.** <@${oduserId}> — ${formatDuration(value)}`;
+          if (isMsg) return `**${rank}.** <@${oduserId}> — **${value} messages**`;
+        });
+
+        const botName = client.user.username;
+        const container = new ContainerBuilder()
+          .setAccentColor(0x2b2d31)
+          .addTextDisplayComponents(
+            (text) => text.setContent(isAfk ? '**🏆 AFK Leaderboard**' : '**🏆 Message Leaderboard**'),
+            (text) => text.setContent(lines.join('\n') + `\n\nPage **${page + 1}** of **${totalPages}**`)
+          )
+          .addSeparatorComponents((sep) => sep.setDivider(true))
+          .addActionRowComponents((row) =>
+            row.addComponents(
+              new ButtonBuilder()
+                .setCustomId(`${isAfk ? 'afk_prev' : 'msg_prev'}:${page}`)
+                .setLabel('Prev')
+                .setStyle(ButtonStyle.Secondary)
+                .setDisabled(page === 0),
+              new ButtonBuilder()
+                .setCustomId(`${isAfk ? 'afk_next' : 'msg_next'}:${page}`)
+                .setLabel('Next')
+                .setStyle(ButtonStyle.Secondary)
+                .setDisabled(page >= totalPages - 1)
+            )
+          );
+
+        return interaction.update({ components: [container], flags: MessageFlags.IsComponentsV2 });
       }
     }
     
-  }
-});
-
-
-    // ============================================================
-    // LEADERBOARD BUTTONS (AFK + MSG)
-    // ============================================================
-    if (interaction.isButton()) {
-      const [type, pageStr] = interaction.customId.split(':');
-      let page = parseInt(pageStr);
-
-      const data = leaderboardPages.get(interaction.message.id);
-      if (!data) return;
-
-      const isAfk = data.type === 'afk';
-      const isMsg = data.type === 'msg';
-
-      let entries;
-
-      if (isAfk) {
-        const afkTotals = await getAllAfkData();
-        entries = Array.from(afkTotals.entries())
-          .filter(([_, ms]) => ms > 0)
-          .sort((a, b) => b[1] - a[1]);
-      } else if (isMsg) {
-        const msgCounts = await getAllMsgCounts();
-        entries = Array.from(msgCounts.entries())
-          .filter(([k, count]) => {
-            const [guildId] = k.split(':');
-            return guildId === interaction.guild.id && count > 0;
-          })
-          .map(([k, count]) => {
-            const oduserId = k.split(':')[1];
-            return [oduserId, count];
-          })
-          .sort((a, b) => b[1] - a[1]);
-      }
-
-      const pageSize = 10;
-      const totalPages = Math.ceil(entries.length / pageSize);
-
-      if (type.endsWith('next') && page < totalPages - 1) page++;
-      if (type.endsWith('prev') && page > 0) page--;
-
-      data.page = page;
-      leaderboardPages.set(interaction.message.id, data);
-
-      const start = page * pageSize;
-      const pageEntries = entries.slice(start, start + pageSize);
-
-      const lines = pageEntries.map(([oduserId, value], i) => {
-        const rank = start + i + 1;
-        if (isAfk) return `**${rank}.** <@${oduserId}> — ${formatDuration(value)}`;
-        if (isMsg) return `**${rank}.** <@${oduserId}> — **${value} messages**`;
-      });
-
-      const botName = client.user.username;
-      const container = new ContainerBuilder()
-        .setAccentColor(0x2b2d31)
-        .addTextDisplayComponents(
-          (text) => text.setContent(isAfk ? '**🏆 AFK Leaderboard**' : '**🏆 Message Leaderboard**'),
-          (text) => text.setContent(lines.join('\n') + `\n\nPage **${page + 1}** of **${totalPages}**`)
-        )
-        .addSeparatorComponents((sep) => sep.setDivider(true))
-        .addActionRowComponents((row) =>
-          row.addComponents(
-            new ButtonBuilder()
-              .setCustomId(`${isAfk ? 'afk_prev' : 'msg_prev'}:${page}`)
-              .setLabel('Prev')
-              .setStyle(ButtonStyle.Secondary)
-              .setDisabled(page === 0),
-            new ButtonBuilder()
-              .setCustomId(`${isAfk ? 'afk_next' : 'msg_next'}:${page}`)
-              .setLabel('Next')
-              .setStyle(ButtonStyle.Secondary)
-              .setDisabled(page >= totalPages - 1)
-          )
-        );
-
-      return interaction.update({ components: [container], flags: MessageFlags.IsComponentsV2 });
-    }
   } catch (err) {
     console.error('Interaction failed:', err);
   }
 });
-
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
