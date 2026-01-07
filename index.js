@@ -920,6 +920,7 @@ Thank you for using Ninja V2.`
         allowedMentions: { repliedUser: false }
       });
     }
+// ===== TIME COMMAND (FIXED WITH 25 TIMEZONES MAX) =====
 if (command === "time") {
   try {
     const profile = await getUserProfile(message.author.id);
@@ -977,25 +978,15 @@ if (command === "time") {
       { label: "🌎 Central Time (Chicago)", value: "America/Chicago" },
       { label: "🌎 Mountain Time (Denver)", value: "America/Denver" },
       { label: "🌎 Pacific Time (Los Angeles)", value: "America/Los_Angeles" },
-      { label: "🌎 Alaska Time", value: "America/Anchorage" },
-      { label: "🌎 Hawaii Time", value: "Pacific/Honolulu" },
       { label: "🌎 Toronto", value: "America/Toronto" },
       { label: "🌎 Mexico City", value: "America/Mexico_City" },
       { label: "🌎 São Paulo", value: "America/Sao_Paulo" },
-      { label: "🌎 Buenos Aires", value: "America/Argentina/Buenos_Aires" },
       
       // Europe
       { label: "🌍 London (GMT)", value: "Europe/London" },
       { label: "🌍 Paris (CET)", value: "Europe/Paris" },
       { label: "🌍 Berlin", value: "Europe/Berlin" },
-      { label: "🌍 Rome", value: "Europe/Rome" },
-      { label: "🌍 Madrid", value: "Europe/Madrid" },
       { label: "🌍 Amsterdam", value: "Europe/Amsterdam" },
-      { label: "🌍 Brussels", value: "Europe/Brussels" },
-      { label: "🌍 Vienna", value: "Europe/Vienna" },
-      { label: "🌍 Warsaw", value: "Europe/Warsaw" },
-      { label: "🌍 Athens", value: "Europe/Athens" },
-      { label: "🌍 Istanbul", value: "Europe/Istanbul" },
       { label: "🌍 Moscow", value: "Europe/Moscow" },
       
       // Asia
@@ -1004,22 +995,18 @@ if (command === "time") {
       { label: "🌏 Bangkok", value: "Asia/Bangkok" },
       { label: "🌏 Singapore", value: "Asia/Singapore" },
       { label: "🌏 Hong Kong", value: "Asia/Hong_Kong" },
-      { label: "🌏 Shanghai", value: "Asia/Shanghai" },
       { label: "🌏 Tokyo", value: "Asia/Tokyo" },
       { label: "🌏 Seoul", value: "Asia/Seoul" },
       
       // Oceania
       { label: "🌏 Sydney", value: "Australia/Sydney" },
       { label: "🌏 Melbourne", value: "Australia/Melbourne" },
-      { label: "🌏 Brisbane", value: "Australia/Brisbane" },
-      { label: "🌏 Perth", value: "Australia/Perth" },
       { label: "🌏 Auckland", value: "Pacific/Auckland" },
       
       // Africa
       { label: "🌍 Cairo", value: "Africa/Cairo" },
       { label: "🌍 Johannesburg", value: "Africa/Johannesburg" },
-      { label: "🌍 Lagos", value: "Africa/Lagos" },
-      { label: "🌍 Nairobi", value: "Africa/Nairobi" }
+      { label: "🌍 Lagos", value: "Africa/Lagos" }
     ];
     
     const selectMenu = new StringSelectMenuBuilder()
@@ -1043,7 +1030,7 @@ if (command === "time") {
   }
 }
 
-// ===== TIMEUNLINK COMMAND (FIXED) =====
+// ===== TIMEUNLINK COMMAND =====
 if (command === "timeunlink") {
   try {
     const profile = await getUserProfile(message.author.id);
@@ -1079,8 +1066,7 @@ if (command === "timeunlink") {
     console.error("Timeunlink command error:", error);
     return message.reply("An error occurred while removing your timezone.");
   }
-}
-
+       }
 
     if (command === "memberdm") {
       const senderId = message.author.id;
@@ -2851,6 +2837,7 @@ Thank you for using Ninja V2.`
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
