@@ -2670,35 +2670,40 @@ client.on('interactionCreate', async (interaction) => {
           )
       );
 
-    const row = {
-      type: 1,
-      components: [
-        new ButtonBuilder()
-          .setCustomId(`cl_prev_${page}`)
-          .setLabel("Previous")
-          .setStyle(ButtonStyle.Secondary)
-          .setDisabled(page === 0),
+    const container = new ContainerBuilder()
+  .addTextDisplayComponents(
+    (text) => text.setContent(`**${entry.title}**`),
+    (text) => text.setContent(
+      `**Version:** \`${entry.version}\`\n` +
+      `**Date:** \`${entry.date}\`\n\n` +
+      entry.changes.map(c => `• ${c}`).join("\n") +
+      `\n\n*Page ${page + 1} of ${changelog.length}*`
+    )
+  )
+  .addActionRowComponents((row) =>
+    row.addComponents(
+      new ButtonBuilder()
+        .setCustomId(`cl_prev_${page}`)
+        .setLabel("Previous")
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(page === 0),
+      new ButtonBuilder()
+        .setCustomId(`cl_next_${page}`)
+        .setLabel("Next")
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(page === changelog.length - 1),
+      new ButtonBuilder()
+        .setCustomId("cl_latest")
+        .setLabel("Latest")
+        .setStyle(ButtonStyle.Primary)
+        .setDisabled(page === 0)
+    )
+  );
 
-        new ButtonBuilder()
-          .setCustomId(`cl_next_${page}`)
-          .setLabel("Next")
-          .setStyle(ButtonStyle.Secondary)
-          .setDisabled(page === changelog.length - 1),
-
-        new ButtonBuilder()
-          .setCustomId("cl_latest")
-          .setLabel("Latest")
-          .setStyle(ButtonStyle.Primary)
-          .setDisabled(page === 0)
-      ]
-    };
-
-    await interaction.update({
-      components: [row],
-      ui: [container]
-    });
-  }
-}); 
+await interaction.update({
+  components: [container],
+  flags: MessageFlags.IsComponentsV2
+});
         
     
 
@@ -2954,6 +2959,7 @@ if (interaction.customId === "time_unlink") {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
