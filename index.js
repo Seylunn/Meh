@@ -2858,7 +2858,6 @@ if (interaction.customId === "time_unlink") {
     // ============================================================
     if (interaction.isButton()) {
       const [type, pageStr] = interaction.customId.split(':');
-      let page = parseInt(pageStr);
 
       const data = leaderboardPages.get(interaction.message.id);
       if (!data) return;
@@ -2925,7 +2924,6 @@ if (interaction.customId === "time_unlink") {
           );
 
         return interaction.update({ components: [container], flags: MessageFlags.IsComponentsV2 });
-      }
     }
     
   } catch (err) {
