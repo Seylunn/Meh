@@ -893,7 +893,8 @@ Thank you for using Ninja V2.`
     }
 
 
-// ===== TIME COMMAND (WITH DROPDOWN INSIDE CONTAINER) =====
+return message.reply({ 
+// ===== TIME COMMAND (MORE COUNTRIES) =====
 if (command === "time") {
   try {
     const profile = await getUserProfile(message.author.id);
@@ -938,48 +939,46 @@ if (command === "time") {
       }
     }
     
-    // Show timezone selector
+    // Show timezone selector with diverse countries
     const timezones = [
       // Americas
-      { label: "🌎 Eastern Time (New York)", value: "America/New_York" },
-      { label: "🌎 Central Time (Chicago)", value: "America/Chicago" },
-      { label: "🌎 Mountain Time (Denver)", value: "America/Denver" },
-      { label: "🌎 Pacific Time (Los Angeles)", value: "America/Los_Angeles" },
-      { label: "🌎 Toronto", value: "America/Toronto" },
-      { label: "🌎 Mexico City", value: "America/Mexico_City" },
-      { label: "🌎 São Paulo", value: "America/Sao_Paulo" },
+      { label: "🇺🇸 United States (Eastern)", value: "America/New_York" },
+      { label: "🇺🇸 United States (Pacific)", value: "America/Los_Angeles" },
+      { label: "🇨🇦 Canada (Toronto)", value: "America/Toronto" },
+      { label: "🇲🇽 Mexico", value: "America/Mexico_City" },
+      { label: "🇧🇷 Brazil", value: "America/Sao_Paulo" },
+      { label: "🇦🇷 Argentina", value: "America/Argentina/Buenos_Aires" },
       
       // Europe
-      { label: "🌍 London (GMT)", value: "Europe/London" },
-      { label: "🌍 Paris (CET)", value: "Europe/Paris" },
-      { label: "🌍 Berlin", value: "Europe/Berlin" },
-      { label: "🌍 Amsterdam", value: "Europe/Amsterdam" },
-      { label: "🌍 Moscow", value: "Europe/Moscow" },
+      { label: "🇬🇧 United Kingdom", value: "Europe/London" },
+      { label: "🇫🇷 France", value: "Europe/Paris" },
+      { label: "🇩🇪 Germany", value: "Europe/Berlin" },
+      { label: "🇪🇸 Spain", value: "Europe/Madrid" },
+      { label: "🇮🇹 Italy", value: "Europe/Rome" },
+      { label: "🇳🇱 Netherlands", value: "Europe/Amsterdam" },
+      { label: "🇷🇺 Russia (Moscow)", value: "Europe/Moscow" },
+      { label: "🇬🇷 Greece", value: "Europe/Athens" },
       
       // Asia
-      { label: "🌏 Dubai", value: "Asia/Dubai" },
-      { label: "🌏 Mumbai", value: "Asia/Kolkata" },
-      { label: "🌏 Bangkok", value: "Asia/Bangkok" },
-      { label: "🌏 Singapore", value: "Asia/Singapore" },
-      { label: "🌏 Hong Kong", value: "Asia/Hong_Kong" },
-      { label: "🌏 Tokyo", value: "Asia/Tokyo" },
-      { label: "🌏 Seoul", value: "Asia/Seoul" },
+      { label: "🇦🇪 UAE", value: "Asia/Dubai" },
+      { label: "🇮🇳 India", value: "Asia/Kolkata" },
+      { label: "🇹🇭 Thailand", value: "Asia/Bangkok" },
+      { label: "🇸🇬 Singapore", value: "Asia/Singapore" },
+      { label: "🇵🇭 Philippines", value: "Asia/Manila" },
+      { label: "🇯🇵 Japan", value: "Asia/Tokyo" },
+      { label: "🇰🇷 South Korea", value: "Asia/Seoul" },
       
-      // Oceania
-      { label: "🌏 Sydney", value: "Australia/Sydney" },
-      { label: "🌏 Melbourne", value: "Australia/Melbourne" },
-      { label: "🌏 Auckland", value: "Pacific/Auckland" },
-      
-      // Africa
-      { label: "🌍 Cairo", value: "Africa/Cairo" },
-      { label: "🌍 Johannesburg", value: "Africa/Johannesburg" },
-      { label: "🌍 Lagos", value: "Africa/Lagos" }
+      // Oceania & Africa
+      { label: "🇦🇺 Australia (Sydney)", value: "Australia/Sydney" },
+      { label: "🇳🇿 New Zealand", value: "Pacific/Auckland" },
+      { label: "🇿🇦 South Africa", value: "Africa/Johannesburg" },
+      { label: "🇪🇬 Egypt", value: "Africa/Cairo" }
     ];
     
     const container = new ContainerBuilder()
       .addTextDisplayComponents(
         (text) => text.setContent("⏰ **Select Your Timezone**"),
-        (text) => text.setContent("Choose your timezone from the menu below to save it.")
+        (text) => text.setContent("Choose your timezone from the menu below, or use `,settz <timezone>` for others.")
       )
       .addActionRowComponents((row) =>
         row.addComponents(
@@ -998,6 +997,111 @@ if (command === "time") {
   } catch (error) {
     console.error("Time command error:", error);
     return message.reply("An error occurred while loading the timezone selector.");
+  }
+}
+
+// ===== SETTZ COMMAND =====
+if (command === "settz") {
+  try {
+    const timezone = args.join(" ");
+    
+    if (!timezone) {
+      return message.reply("Usage: `,settz <timezone>`\nExample: `,settz Europe/London`\n\nOr use `,time` to select from a list.");
+    }
+    
+    // Try to validate the timezone
+    try {
+      new Date().toLocaleString("en-US", { timeZone: timezone });
+      
+      // Valid timezone, save it
+      const profile = await getUserProfile(message.author.id) || {};
+      profile.timezone = timezone;
+      await setUserProfile(message.author.id, profile);
+      
+      const now = new Date().toLocaleString("en-US", { 
+        timeZone: timezone,
+        dateStyle: "full",
+        timeStyle: "long"
+      });
+      
+      const container = new ContainerBuilder()
+        .addTextDisplayComponents(
+          (text) => text.setContent("✅ **Timezone Saved**"),
+          (text) => text.setContent(
+            `**Timezone:** ${timezone}\n` +
+            `**Current Time:** ${now}\n\n` +
+            `Use \`,time\` to view your time anytime!`
+          )
+        );
+      
+      return message.reply({
+        components: [container],
+        flags: MessageFlags.IsComponentsV2
+      });
+      
+    } catch (err) {
+      // Invalid timezone, show selector
+      const timezones = [
+        // Americas
+        { label: "🇺🇸 United States (Eastern)", value: "America/New_York" },
+        { label: "🇺🇸 United States (Pacific)", value: "America/Los_Angeles" },
+        { label: "🇨🇦 Canada (Toronto)", value: "America/Toronto" },
+        { label: "🇲🇽 Mexico", value: "America/Mexico_City" },
+        { label: "🇧🇷 Brazil", value: "America/Sao_Paulo" },
+        { label: "🇦🇷 Argentina", value: "America/Argentina/Buenos_Aires" },
+        
+        // Europe
+        { label: "🇬🇧 United Kingdom", value: "Europe/London" },
+        { label: "🇫🇷 France", value: "Europe/Paris" },
+        { label: "🇩🇪 Germany", value: "Europe/Berlin" },
+        { label: "🇪🇸 Spain", value: "Europe/Madrid" },
+        { label: "🇮🇹 Italy", value: "Europe/Rome" },
+        { label: "🇳🇱 Netherlands", value: "Europe/Amsterdam" },
+        { label: "🇷🇺 Russia (Moscow)", value: "Europe/Moscow" },
+        { label: "🇬🇷 Greece", value: "Europe/Athens" },
+        
+        // Asia
+        { label: "🇦🇪 UAE", value: "Asia/Dubai" },
+        { label: "🇮🇳 India", value: "Asia/Kolkata" },
+        { label: "🇹🇭 Thailand", value: "Asia/Bangkok" },
+        { label: "🇸🇬 Singapore", value: "Asia/Singapore" },
+        { label: "🇵🇭 Philippines", value: "Asia/Manila" },
+        { label: "🇯🇵 Japan", value: "Asia/Tokyo" },
+        { label: "🇰🇷 South Korea", value: "Asia/Seoul" },
+        
+        // Oceania & Africa
+        { label: "🇦🇺 Australia (Sydney)", value: "Australia/Sydney" },
+        { label: "🇳🇿 New Zealand", value: "Pacific/Auckland" },
+        { label: "🇿🇦 South Africa", value: "Africa/Johannesburg" },
+        { label: "🇪🇬 Egypt", value: "Africa/Cairo" }
+      ];
+      
+      const container = new ContainerBuilder()
+        .addTextDisplayComponents(
+          (text) => text.setContent("❌ **Invalid Timezone**"),
+          (text) => text.setContent(
+            `**${timezone}** is not a valid timezone.\n\n` +
+            `Select from the list below, or see the full list at:\nhttps://en.wikipedia.org/wiki/List_of_tz_database_time_zones`
+          )
+        )
+        .addActionRowComponents((row) =>
+          row.addComponents(
+            new StringSelectMenuBuilder()
+              .setCustomId("time_select")
+              .setPlaceholder("Select your timezone")
+              .addOptions(timezones)
+          )
+        );
+      
+      return message.reply({
+        components: [container],
+        flags: MessageFlags.IsComponentsV2
+      });
+    }
+    
+  } catch (error) {
+    console.error("Settz command error:", error);
+    return message.reply("An error occurred while setting your timezone.");
   }
 }
 
@@ -1037,8 +1141,7 @@ if (command === "timeunlink") {
     console.error("Timeunlink command error:", error);
     return message.reply("An error occurred while removing your timezone.");
   }
-            }
-
+                           }
     if (command === "servericon") {
       if (!message.guild) return;
 
@@ -2555,7 +2658,7 @@ Thank you for using Ninja V2.`
 });
 
                 
-        // ===== COMPLETE INTERACTION HANDLER =====
+            // ===== COMPLETE INTERACTION HANDLER =====
 client.on('interactionCreate', async (interaction) => {
   try {
     
@@ -2564,12 +2667,10 @@ client.on('interactionCreate', async (interaction) => {
       if (interaction.customId === "time_select") {
         const timezone = interaction.values[0];
         
-        // Save timezone
         const profile = await getUserProfile(interaction.user.id) || {};
         profile.timezone = timezone;
         await setUserProfile(interaction.user.id, profile);
         
-        // Show confirmation with current time
         const now = new Date().toLocaleString("en-US", { 
           timeZone: timezone,
           dateStyle: "full",
@@ -2661,39 +2762,37 @@ client.on('interactionCreate', async (interaction) => {
       if (customId === "time_change") {
         const timezones = [
           // Americas
-          { label: "🌎 Eastern Time (New York)", value: "America/New_York" },
-          { label: "🌎 Central Time (Chicago)", value: "America/Chicago" },
-          { label: "🌎 Mountain Time (Denver)", value: "America/Denver" },
-          { label: "🌎 Pacific Time (Los Angeles)", value: "America/Los_Angeles" },
-          { label: "🌎 Toronto", value: "America/Toronto" },
-          { label: "🌎 Mexico City", value: "America/Mexico_City" },
-          { label: "🌎 São Paulo", value: "America/Sao_Paulo" },
+          { label: "🇺🇸 United States (Eastern)", value: "America/New_York" },
+          { label: "🇺🇸 United States (Pacific)", value: "America/Los_Angeles" },
+          { label: "🇨🇦 Canada (Toronto)", value: "America/Toronto" },
+          { label: "🇲🇽 Mexico", value: "America/Mexico_City" },
+          { label: "🇧🇷 Brazil", value: "America/Sao_Paulo" },
+          { label: "🇦🇷 Argentina", value: "America/Argentina/Buenos_Aires" },
           
           // Europe
-          { label: "🌍 London (GMT)", value: "Europe/London" },
-          { label: "🌍 Paris (CET)", value: "Europe/Paris" },
-          { label: "🌍 Berlin", value: "Europe/Berlin" },
-          { label: "🌍 Amsterdam", value: "Europe/Amsterdam" },
-          { label: "🌍 Moscow", value: "Europe/Moscow" },
+          { label: "🇬🇧 United Kingdom", value: "Europe/London" },
+          { label: "🇫🇷 France", value: "Europe/Paris" },
+          { label: "🇩🇪 Germany", value: "Europe/Berlin" },
+          { label: "🇪🇸 Spain", value: "Europe/Madrid" },
+          { label: "🇮🇹 Italy", value: "Europe/Rome" },
+          { label: "🇳🇱 Netherlands", value: "Europe/Amsterdam" },
+          { label: "🇷🇺 Russia (Moscow)", value: "Europe/Moscow" },
+          { label: "🇬🇷 Greece", value: "Europe/Athens" },
           
           // Asia
-          { label: "🌏 Dubai", value: "Asia/Dubai" },
-          { label: "🌏 Mumbai", value: "Asia/Kolkata" },
-          { label: "🌏 Bangkok", value: "Asia/Bangkok" },
-          { label: "🌏 Singapore", value: "Asia/Singapore" },
-          { label: "🌏 Hong Kong", value: "Asia/Hong_Kong" },
-          { label: "🌏 Tokyo", value: "Asia/Tokyo" },
-          { label: "🌏 Seoul", value: "Asia/Seoul" },
+          { label: "🇦🇪 UAE", value: "Asia/Dubai" },
+          { label: "🇮🇳 India", value: "Asia/Kolkata" },
+          { label: "🇹🇭 Thailand", value: "Asia/Bangkok" },
+          { label: "🇸🇬 Singapore", value: "Asia/Singapore" },
+          { label: "🇵🇭 Philippines", value: "Asia/Manila" },
+          { label: "🇯🇵 Japan", value: "Asia/Tokyo" },
+          { label: "🇰🇷 South Korea", value: "Asia/Seoul" },
           
-          // Oceania
-          { label: "🌏 Sydney", value: "Australia/Sydney" },
-          { label: "🌏 Melbourne", value: "Australia/Melbourne" },
-          { label: "🌏 Auckland", value: "Pacific/Auckland" },
-          
-          // Africa
-          { label: "🌍 Cairo", value: "Africa/Cairo" },
-          { label: "🌍 Johannesburg", value: "Africa/Johannesburg" },
-          { label: "🌍 Lagos", value: "Africa/Lagos" }
+          // Oceania & Africa
+          { label: "🇦🇺 Australia (Sydney)", value: "Australia/Sydney" },
+          { label: "🇳🇿 New Zealand", value: "Pacific/Auckland" },
+          { label: "🇿🇦 South Africa", value: "Africa/Johannesburg" },
+          { label: "🇪🇬 Egypt", value: "Africa/Cairo" }
         ];
         
         const container = new ContainerBuilder()
@@ -2826,6 +2925,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
