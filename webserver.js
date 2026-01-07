@@ -41,6 +41,9 @@ export function startWebserver(client) {
               { name: ",memberdm", desc: "DM any user with the command" },
               { name: ",servericon", desc: "show the servers icon" },
               { name: ",changelog", desc: "show all bot updates" },
+              { name: ",settz", desc: "Add a valid timezone" },
+              { name: ",time", desc: "Shows timezones time" },
+              { name: ",unlinktime", desc: "Unlink your current timezone" },
               { name: ",uptime", desc: "Bot uptime" }
             ]
           },
