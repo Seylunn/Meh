@@ -2635,11 +2635,8 @@ client.on('interactionCreate', async (interaction) => {
     }
 
     // ===== BUTTON INTERACTION HANDLER =====
-// Put this in your interactionCreate event handler
-client.on('interactionCreate', async (interaction) => {
-  if (!interaction.isButton()) return;
-
-  const customId = interaction.customId;
+    if (interaction.isButton()) {
+      const customId = interaction.customId;
 
   // Changelog button handlers
   if (customId.startsWith('cl_')) {
@@ -2926,6 +2923,19 @@ if (interaction.customId === "time_unlink") {
         return interaction.update({ components: [container], flags: MessageFlags.IsComponentsV2 });
     }
     
+  } catch (err) {
+    console.error('Interaction failed:', err);
+    console.error('Stack trace:', err.stack);
+    // Try to respond if we haven't already
+    try {
+      if (interaction.replied || interaction.deferred) {
+        await interaction.followUp({ content: 'An error occurred!', ephemeral: true });
+      } else {
+        await interaction.reply({ content: 'An error occurred!', ephemeral: true });
+      }
+    } catch (e) {
+      // Ignore if we can't send error message
+    }
   } catch (err) {
     console.error('Interaction failed:', err);
     console.error('Stack trace:', err.stack);
