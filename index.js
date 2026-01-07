@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { startWebserver } from './webserver.js';
+import { startWebserver } from './src/webserver.js';
 import {
   connectDB,
   getAfkData, setAfkData, getAllAfkData, deleteAfkData,
@@ -11,7 +11,7 @@ import {
   isBlacklisted, addToBlacklist, removeFromBlacklist, getAllBlacklist,
   getCommandUsage, incrementCommandUsage,
   getFMUser, setFMUser
-} from './database.js';
+} from './src/database.js';
 import {
   EmbedBuilder,
   Client,
