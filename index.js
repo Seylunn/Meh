@@ -893,7 +893,7 @@ Thank you for using Ninja V2.`
     }
 
 
-return message.reply({ 
+
 // ===== TIME COMMAND (MORE COUNTRIES) =====
 if (command === "time") {
   try {
@@ -2925,6 +2925,7 @@ client.on('interactionCreate', async (interaction) => {
 // ===================== LOGIN ===================== //
 
 client.login(TOKEN);
+
 
 
 
