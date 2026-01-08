@@ -986,7 +986,7 @@ if (command === "time") {
       );
     
     const timezones = [
-      // Americas
+      // Americas (US/Canada)
       { label: "🌎 Eastern Time (New York)", value: "America/New_York" },
       { label: "🌎 Central Time (Chicago)", value: "America/Chicago" },
       { label: "🌎 Mountain Time (Denver)", value: "America/Denver" },
@@ -995,45 +995,31 @@ if (command === "time") {
       { label: "🌎 Hawaii Time", value: "Pacific/Honolulu" },
       { label: "🌎 Toronto", value: "America/Toronto" },
       { label: "🌎 Mexico City", value: "America/Mexico_City" },
-      { label: "🌎 São Paulo", value: "America/Sao_Paulo" },
-      { label: "🌎 Buenos Aires", value: "America/Argentina/Buenos_Aires" },
       
       // Europe
       { label: "🌍 London (GMT)", value: "Europe/London" },
       { label: "🌍 Paris (CET)", value: "Europe/Paris" },
       { label: "🌍 Berlin", value: "Europe/Berlin" },
-      { label: "🌍 Rome", value: "Europe/Rome" },
       { label: "🌍 Madrid", value: "Europe/Madrid" },
-      { label: "🌍 Amsterdam", value: "Europe/Amsterdam" },
-      { label: "🌍 Brussels", value: "Europe/Brussels" },
-      { label: "🌍 Vienna", value: "Europe/Vienna" },
-      { label: "🌍 Warsaw", value: "Europe/Warsaw" },
-      { label: "🌍 Athens", value: "Europe/Athens" },
-      { label: "🌍 Istanbul", value: "Europe/Istanbul" },
+      { label: "🌍 Rome", value: "Europe/Rome" },
       { label: "🌍 Moscow", value: "Europe/Moscow" },
       
       // Asia
       { label: "🌏 Dubai", value: "Asia/Dubai" },
       { label: "🌏 Mumbai", value: "Asia/Kolkata" },
-      { label: "🌏 Bangkok", value: "Asia/Bangkok" },
       { label: "🌏 Singapore", value: "Asia/Singapore" },
       { label: "🌏 Hong Kong", value: "Asia/Hong_Kong" },
-      { label: "🌏 Shanghai", value: "Asia/Shanghai" },
       { label: "🌏 Tokyo", value: "Asia/Tokyo" },
       { label: "🌏 Seoul", value: "Asia/Seoul" },
+      { label: "🌏 Shanghai", value: "Asia/Shanghai" },
       
       // Oceania
       { label: "🌏 Sydney", value: "Australia/Sydney" },
       { label: "🌏 Melbourne", value: "Australia/Melbourne" },
-      { label: "🌏 Brisbane", value: "Australia/Brisbane" },
-      { label: "🌏 Perth", value: "Australia/Perth" },
-      { label: "🌏 Auckland", value: "Pacific/Auckland" },
       
-      // Africa
-      { label: "🌍 Cairo", value: "Africa/Cairo" },
-      { label: "🌍 Johannesburg", value: "Africa/Johannesburg" },
-      { label: "🌍 Lagos", value: "Africa/Lagos" },
-      { label: "🌍 Nairobi", value: "Africa/Nairobi" }
+      // South America & Africa
+      { label: "🌎 São Paulo", value: "America/Sao_Paulo" },
+      { label: "🌍 Cairo", value: "Africa/Cairo" }
     ];
     
     const selectMenu = new StringSelectMenuBuilder()
@@ -2741,6 +2727,7 @@ client.on('interactionCreate', async (interaction) => {
       if (customId === "time_change") {
         try {
           const timezones = [
+            // Americas (US/Canada)
             { label: "🌎 Eastern Time (New York)", value: "America/New_York" },
             { label: "🌎 Central Time (Chicago)", value: "America/Chicago" },
             { label: "🌎 Mountain Time (Denver)", value: "America/Denver" },
@@ -2749,37 +2736,31 @@ client.on('interactionCreate', async (interaction) => {
             { label: "🌎 Hawaii Time", value: "Pacific/Honolulu" },
             { label: "🌎 Toronto", value: "America/Toronto" },
             { label: "🌎 Mexico City", value: "America/Mexico_City" },
-            { label: "🌎 São Paulo", value: "America/Sao_Paulo" },
-            { label: "🌎 Buenos Aires", value: "America/Argentina/Buenos_Aires" },
+            
+            // Europe
             { label: "🌍 London (GMT)", value: "Europe/London" },
             { label: "🌍 Paris (CET)", value: "Europe/Paris" },
             { label: "🌍 Berlin", value: "Europe/Berlin" },
-            { label: "🌍 Rome", value: "Europe/Rome" },
             { label: "🌍 Madrid", value: "Europe/Madrid" },
-            { label: "🌍 Amsterdam", value: "Europe/Amsterdam" },
-            { label: "🌍 Brussels", value: "Europe/Brussels" },
-            { label: "🌍 Vienna", value: "Europe/Vienna" },
-            { label: "🌍 Warsaw", value: "Europe/Warsaw" },
-            { label: "🌍 Athens", value: "Europe/Athens" },
-            { label: "🌍 Istanbul", value: "Europe/Istanbul" },
+            { label: "🌍 Rome", value: "Europe/Rome" },
             { label: "🌍 Moscow", value: "Europe/Moscow" },
+            
+            // Asia
             { label: "🌏 Dubai", value: "Asia/Dubai" },
             { label: "🌏 Mumbai", value: "Asia/Kolkata" },
-            { label: "🌏 Bangkok", value: "Asia/Bangkok" },
             { label: "🌏 Singapore", value: "Asia/Singapore" },
             { label: "🌏 Hong Kong", value: "Asia/Hong_Kong" },
-            { label: "🌏 Shanghai", value: "Asia/Shanghai" },
             { label: "🌏 Tokyo", value: "Asia/Tokyo" },
             { label: "🌏 Seoul", value: "Asia/Seoul" },
+            { label: "🌏 Shanghai", value: "Asia/Shanghai" },
+            
+            // Oceania
             { label: "🌏 Sydney", value: "Australia/Sydney" },
             { label: "🌏 Melbourne", value: "Australia/Melbourne" },
-            { label: "🌏 Brisbane", value: "Australia/Brisbane" },
-            { label: "🌏 Perth", value: "Australia/Perth" },
-            { label: "🌏 Auckland", value: "Pacific/Auckland" },
-            { label: "🌍 Cairo", value: "Africa/Cairo" },
-            { label: "🌍 Johannesburg", value: "Africa/Johannesburg" },
-            { label: "🌍 Lagos", value: "Africa/Lagos" },
-            { label: "🌍 Nairobi", value: "Africa/Nairobi" }
+            
+            // South America & Africa
+            { label: "🌎 São Paulo", value: "America/Sao_Paulo" },
+            { label: "🌍 Cairo", value: "Africa/Cairo" }
           ];
 
           const selectMenu = new StringSelectMenuBuilder()
