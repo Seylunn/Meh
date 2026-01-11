@@ -356,7 +356,6 @@ client.on('messageCreate', async (message) => {
     if (await handleFunCommands(ctx)) return;
     if (await handleAnimalCommands(ctx)) return;
     if (await handleAfkCommands(ctx)) return;
-    if (await handleLeaderboardCommands(ctx)) return;
     if (await handleOwnerCommands(ctx)) return;
     if (await handleHelpCommand(ctx)) return;
     if (await handleTimeCommands(ctx)) return;
@@ -385,6 +384,7 @@ process.on('uncaughtException', (err) => {
 /* ===================== LOGIN ===================== */
 
 client.login(TOKEN);
+
 
 
 
