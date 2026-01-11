@@ -36,9 +36,7 @@ import {
 import { handleUtilityCommands } from './commands/utility.js';
 import { handleFunCommands } from './commands/fun.js';
 import { handleAnimalCommands } from './commands/animals.js';
-import { handleModerationCommands } from './commands/moderation.js';
 import { handleAfkCommands } from './commands/afk.js';
-import { handleLeaderboardCommands } from './commands/leaderboard.js';
 import { handleOwnerCommands } from './commands/owner.js';
 import { handleHelpCommand } from './commands/help.js';
 import { handleTimeCommands } from './commands/time.js';
@@ -424,3 +422,4 @@ process.on('uncaughtException', (err) => {
 /* ===================== LOGIN ===================== */
 
 client.login(TOKEN);
+
