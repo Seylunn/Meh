@@ -6,7 +6,6 @@ import { connectDB } from './src/database.js';
 // Command handlers (organized by category)
 import { handleUtilityCommands } from './commands/utility.js';
 import { handleFunCommands } from './commands/fun.js';
-import { handleModerationCommands } from './commands/moderation.js';
 import { handleAfkCommands } from './commands/afk.js';
 import { handleLeaderboardCommands } from './commands/leaderboard.js';
 import { handleOwnerCommands } from './commands/owner.js';
@@ -183,3 +182,4 @@ process.on('uncaughtException', (err) => {
 
 /* ===================== LOGIN ===================== */
 client.login(TOKEN);
+
