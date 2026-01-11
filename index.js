@@ -7,7 +7,6 @@ import { connectDB } from './src/database.js';
 import { handleUtilityCommands } from './commands/utility.js';
 import { handleFunCommands } from './commands/fun.js';
 import { handleAfkCommands } from './commands/afk.js';
-import { handleLeaderboardCommands } from './commands/leaderboard.js';
 import { handleOwnerCommands } from './commands/owner.js';
 
 // Event handlers
@@ -182,4 +181,5 @@ process.on('uncaughtException', (err) => {
 
 /* ===================== LOGIN ===================== */
 client.login(TOKEN);
+
 
