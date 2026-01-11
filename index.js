@@ -1,30 +1,89 @@
 import 'dotenv/config';
-import { Client, GatewayIntentBits, Partials, ActivityType } from 'discord.js';
 import { startWebserver } from './src/webserver.js';
-import { connectDB } from './src/database.js';
+import {
+  connectDB,
+  getAfkData, setAfkData, getAllAfkData, deleteAfkData,
+  getAfkActive, setAfkActive, deleteAfkActive, getAllAfkActive,
+  getMsgCount, incrementMsgCount, getAllMsgCounts,
+  getChatMemory, setChatMemory,
+  getUserProfile, setUserProfile,
+  getConvoSummary, setConvoSummary,
+  isBlacklisted, addToBlacklist, removeFromBlacklist, getAllBlacklist,
+  getCommandUsage, incrementCommandUsage,
+  getFMUser, setFMUser
+} from './src/database.js';
+import {
+  EmbedBuilder,
+  Client,
+  GatewayIntentBits,
+  Partials,
+  StringSelectMenuBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ActivityType,
+  ContainerBuilder,
+  TextDisplayBuilder,
+  SeparatorBuilder,
+  MediaGalleryBuilder,
+  MediaGalleryItemBuilder,
+  SeparatorSpacingSize,
+  MessageFlags,
+  ActionRowBuilder,
+  Options
+} from 'discord.js';
 
-// Command handlers (organized by category)
+// Import command handlers
 import { handleUtilityCommands } from './commands/utility.js';
 import { handleFunCommands } from './commands/fun.js';
 import { handleAfkCommands } from './commands/afk.js';
 import { handleOwnerCommands } from './commands/owner.js';
 
-// Event handlers
+// Import event handlers
 import { handleAfkSystem } from './events/afk.js';
 import { handleAiMentions } from './events/ai.js';
 import { handleInteractions } from './events/interactions.js';
 
+let lastRestartChannel = null;
+
+const changelog = [
+  {
+    title: "Bug Fixes",
+    version: "1.0.3",
+    date: "2026-01-09",
+    changes: ["Fixed ,time","Fixed all storage"],
+  },
+  {
+    title: "Timzones Update",
+    version: "1.0.2",
+    date: "2026-01-07",
+    changes: ["Added 25+ timezones", "Added ,settz command ", "added a ,time command","Added a ,tzunlink command"],
+  },
+  {
+    title: "Initial Release",
+    version: "1.0.1",
+    date: "2026-01-05",
+    changes: ["Fixed afk storage","Added a ,changelog command"],
+  },
+];
+
 /* ===================== CONFIG ===================== */
+
 const PREFIX = ',';
-const BOT_OWNER_IDS = ["1438381425584771244"];
+
 const { TOKEN, GROQ_API_KEY } = process.env;
 
+/* === OWNER IDS (ONLY FOR COMMAND PERMISSIONS) === */
+const BOT_OWNER_IDS = ["1438381425584771244"];
+
 if (!TOKEN || !GROQ_API_KEY) {
-  console.error('❌ Missing environment variables');
+  console.error('❌ Missing env variables');
   process.exit(1);
 }
 
-/* ===================== CLIENT SETUP ===================== */
+const OWNER_NAME = 'Seylun';
+
+/* ===================== CLIENT ===================== */
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -36,128 +95,240 @@ const client = new Client({
     GatewayIntentBits.GuildMessageReactions
   ],
   partials: [Partials.Channel],
-  // Optimize caching
-  makeCache: {
+  makeCache: Options.cacheWithLimits({
     MessageManager: 50,
     PresenceManager: 0,
     GuildMemberManager: 100
-  }
+  })
 });
 
-// Global state (minimal)
+// Start the webserver
+startWebserver(client);
+
+/* ===================== STORAGE (In-Memory Cache) ===================== */
+
 export const state = {
   afkActive: new Map(),
-  snipes: new Map(),
   leaderboardPages: new Map(),
+  snipes: new Map(),
   chatMemoryCache: new Map(),
   userProfileCache: new Map()
 };
 
-/* ===================== STARTUP ===================== */
-client.once('ready', async () => {
+let currentMood = 'Neutral';
+const roasts = [
+  "You're not stupid — you just have bad luck thinking.",
+  "If common sense was a currency, you'd be in debt.",
+  "You're like a cloud. Once you disappear, it's a beautiful day.",
+  "You have the confidence of someone who shouldn't.",
+  "You're proof that evolution can go in reverse.",
+  "I'd agree with you, but then we'd both be wrong.",
+  "You're not useless. You could serve as a bad example.",
+  "Your brain has left the chat.",
+  "You have the energy of a Windows XP error message.",
+  "You're like a software update — nobody asked for you and you take too long."
+];
+const lores = [
+  "was forged in the depths of a forgotten group chat, born from pure chaos and questionable decisions.",
+  "once challenged a Discord mod to a duel and won using only reaction emojis.",
+  "is rumored to be the final boss of every dead server.",
+  "escaped from a parallel universe where everyone speaks in slash commands.",
+  "was banned from 17 servers for excessive rizz deployment.",
+  "once tried to fix a bot and accidentally created sentient code.",
+  "is powered entirely by caffeine, spite, and unstable WiFi.",
+  "was discovered wandering the digital void, mumbling about API limits.",
+  "is the chosen one destined to defeat the lag monster.",
+  "once attempted to roast someone and accidentally summoned a demon."
+];
+
+/* ===================== CONNECT TO MONGODB ===================== */
+
+await connectDB();
+
+/* ===================== AI CORE ===================== */
+
+async function getMemory(key) {
+  if (!state.chatMemoryCache.has(key)) {
+    const memory = await getChatMemory(key);
+    state.chatMemoryCache.set(key, memory);
+  }
+  return state.chatMemoryCache.get(key);
+}
+
+async function saveMemory(key, memory) {
+  state.chatMemoryCache.set(key, memory);
+  await setChatMemory(key, memory);
+}
+
+async function getProfile(key) {
+  if (!state.userProfileCache.has(key)) {
+    const profile = await getUserProfile(key);
+    state.userProfileCache.set(key, profile);
+  }
+  return state.userProfileCache.get(key);
+}
+
+async function saveProfile(key, profile) {
+  state.userProfileCache.set(key, profile);
+  await setUserProfile(key, profile);
+}
+
+function detectIntent(text) {
+  if (!text) return 'chat';
+  if (text.endsWith('?')) return 'question';
+  if (/^(why|how|what|when|where|can you|do you)/i.test(text)) return 'question';
+  if (text.length < 6) return 'short';
+  return 'chat';
+}
+
+function systemPrompt(profile, intent, summary) {
+  return `
+You are "Seylun's ninja", chatting in a Discord server.
+
+Personality:
+- upbeat, happy, willing to chat funny.
+- No cryptic or mysterious answers unless the user asks for it.
+- Keep responses clear and grounded.
+
+Behavior rules:
+- Respond in funny upbeat language.
+- Max 3 short sentences.
+- when asked who is your owner reply with my owner/creator is <@1438381425584771244> if you have any questions about me you can dm him!
+-never say @everyone or @here
+- when asked a question about a topic respond with detailed info only do this for proper questions
+- answer all questions the user asks
+- try to be funny 
+- when asked how do i contact your owner respond with my owners user name is: seyluns there you can contact him.
+- when asked whats your support site respond with my support site is here! https://ninjav2info.koyeb.app/
+- never have . at the end of sentances 
+
+Context:
+- Current mood: ${currentMood}
+- User style: ${profile.style}
+- Conversation summary: ${summary || 'None'}
+`.trim();
+}
+
+async function groqReply(key, input) {
+  const mem = await getMemory(key);
+  const profile = await getProfile(key);
+  const intent = detectIntent(input || '');
+  const summary = await getConvoSummary(key);
+
+  mem.history.push({ role: 'user', content: input });
+  mem.history = mem.history.slice(-10);
+
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${GROQ_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: 'llama-3.1-8b-instant',
+      messages: [
+        { role: 'system', content: systemPrompt(profile, intent, summary) },
+        ...mem.history
+      ],
+      max_tokens: intent === 'short' ? 60 : 180,
+      temperature: intent === 'question' ? 0.3 : 0.45
+    })
+  });
+
+  const data = await res.json();
+  const reply = data.choices?.[0]?.message?.content?.trim() || 'Alright.';
+
+  mem.history.push({ role: 'assistant', content: reply });
+  mem.history = mem.history.slice(-10);
+
+  await saveMemory(key, mem);
+
+  return reply;
+}
+
+/* ===================== READY ===================== */
+
+client.once('clientReady', async () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
 
-  // Connect to database
-  await connectDB();
+  // Load active AFK sessions from database into memory
+  try {
+    const activeAfkSessions = await getAllAfkActive();
+    for (const [userId, session] of activeAfkSessions) {
+      state.afkActive.set(userId, session);
+    }
+    console.log(`📥 Loaded ${activeAfkSessions.size} active AFK sessions`);
+  } catch (err) {
+    console.error('Failed to load AFK sessions:', err);
+  }
 
-  // Start webserver
-  startWebserver(client);
-
-  // Set presence
+  // Presence setup
   client.user.setPresence({
-    activities: [{ name: "https://ninjav2info.koyeb.app/", type: ActivityType.Playing }],
+    activities: [
+      {
+        name: "https://ninjav2info.koyeb.app/",
+        type: ActivityType.Playing
+      }
+    ],
     status: "idle"
   });
 
-  console.log('🚀 Bot ready!');
+  client.user.setActivity("https://ninjav2info.koyeb.app/ for dashboard", {
+    type: ActivityType.Custom
+  });
 });
 
-/* ===================== MESSAGE HANDLER ===================== */
-client.on('messageCreate', async (message) => {
-  try {
-    // Ignore bots and DMs
-    if (message.author.bot || !message.guild) return;
+/* ===================== HELPERS ===================== */
 
-    // Handle AFK system (returns, mentions)
-    await handleAfkSystem(message, state);
+function isOwner(message) {
+  return BOT_OWNER_IDS.includes(message.author.id);
+}
 
-    // Handle AI mentions
-    if (message.mentions.has(client.user.id)) {
-      await handleAiMentions(message, BOT_OWNER_IDS);
-      return;
-    }
+function formatDuration(ms) {
+  const units = [
+    { label: 'year', ms: 1000 * 60 * 60 * 24 * 365 },
+    { label: 'month', ms: 1000 * 60 * 60 * 24 * 30 },
+    { label: 'week', ms: 1000 * 60 * 60 * 24 * 7 },
+    { label: 'day', ms: 1000 * 60 * 60 * 24 },
+    { label: 'hour', ms: 1000 * 60 * 60 },
+    { label: 'minute', ms: 1000 * 60 },
+    { label: 'second', ms: 1000 }
+  ];
 
-    // Check for command prefix
-    if (!message.content.startsWith(PREFIX)) return;
+  let remaining = ms;
+  const parts = [];
 
-    const args = message.content.slice(PREFIX.length).trim().split(/ +/);
-    const command = args.shift()?.toLowerCase();
-    if (!command) return;
-
-    // Command context object
-    const ctx = {
-      message,
-      args,
-      command,
-      client,
-      state,
-      isOwner: BOT_OWNER_IDS.includes(message.author.id)
-    };
-
-    // Route to command handlers
-    const handlers = [
-      handleUtilityCommands,
-      handleFunCommands,
-      handleModerationCommands,
-      handleAfkCommands,
-      handleLeaderboardCommands,
-      handleOwnerCommands
-    ];
-
-    for (const handler of handlers) {
-      const handled = await handler(ctx);
-      if (handled) break;
-    }
-
-  } catch (err) {
-    console.error('Message handler error:', err);
-  }
-});
-
-/* ===================== INTERACTION HANDLER ===================== */
-client.on('interactionCreate', async (interaction) => {
-  try {
-    await handleInteractions(interaction, state);
-  } catch (err) {
-    console.error('Interaction handler error:', err);
-    
-    try {
-      const reply = { content: 'An error occurred!', ephemeral: true };
-      if (interaction.replied || interaction.deferred) {
-        await interaction.followUp(reply);
-      } else {
-        await interaction.reply(reply);
-      }
-    } catch (e) {
-      // Ignore
+  for (const u of units) {
+    if (remaining >= u.ms) {
+      const value = Math.floor(remaining / u.ms);
+      remaining -= value * u.ms;
+      parts.push(`${value} ${u.label}${value !== 1 ? 's' : ''}`);
     }
   }
-});
+
+  return parts.length ? parts.join(', ') : '0 seconds';
+}
 
 /* ===================== MESSAGE DELETE HANDLER ===================== */
+
 client.on('messageDelete', async (message) => {
   if (!message.guild || !message.author) return;
 
   let deleter = null;
 
   try {
-    const logs = await message.guild.fetchAuditLogs({ type: 72, limit: 1 });
+    const logs = await message.guild.fetchAuditLogs({
+      type: 72,
+      limit: 1
+    });
+
     const entry = logs.entries.first();
-    if (entry?.target.id === message.author.id) {
+
+    if (entry && entry.target.id === message.author.id) {
       deleter = entry.executor;
     }
   } catch (e) {
-    // Ignore
+    deleter = null;
   }
 
   state.snipes.set(message.channel.id, {
@@ -169,7 +340,91 @@ client.on('messageDelete', async (message) => {
   });
 });
 
+/* ===================== MESSAGE HANDLER ===================== */
+
+client.on('messageCreate', async (message) => {
+  try {
+    // Ignore bots / DMs
+    if (message.author.bot || !message.guild) return;
+
+    // AFK system
+    await handleAfkSystem(message, state);
+
+    // Message count tracking
+    const key = `${message.guild.id}:${message.author.id}`;
+    incrementMsgCount(key).catch(err => console.error('Failed to increment msg count:', err));
+
+    // Check blacklist for mentions/AI
+    const userBlacklisted = await isBlacklisted(message.author.id);
+    if (message.mentions.users.has(client.user.id) && userBlacklisted && !isOwner(message)) {
+      return message.reply("You are blacklisted from interacting with this bot. DM seyluns to appeal").catch(() => {});
+    }
+
+    // AI mention reply
+    if (message.mentions.users.has(client.user.id)) {
+      await handleAiMentions(message, BOT_OWNER_IDS);
+      return;
+    }
+
+    // Prefix check
+    if (!message.content.startsWith(PREFIX)) return;
+
+    const args = message.content.slice(PREFIX.length).trim().split(/ +/);
+    const command = args.shift()?.toLowerCase();
+    if (!command) return;
+
+    // Check blacklist for commands
+    const cmdUserBlacklisted = await isBlacklisted(message.author.id);
+    if (cmdUserBlacklisted && !isOwner(message)) {
+      return message.reply("You are blacklisted from using these commands DM seyluns to appeal").catch(() => {});
+    }
+
+    // Command context
+    const ctx = {
+      message,
+      args,
+      command,
+      client,
+      state,
+      isOwner: isOwner(message)
+    };
+
+    // Route to command handlers
+    if (await handleUtilityCommands(ctx)) return;
+    if (await handleFunCommands(ctx)) return;
+    if (await handleModerationCommands(ctx)) return;
+    if (await handleAfkCommands(ctx)) return;
+    if (await handleLeaderboardCommands(ctx)) return;
+    if (await handleOwnerCommands(ctx)) return;
+
+    // If no handler caught it, command doesn't exist (optional: add unknown command message)
+
+  } catch (err) {
+    console.error('Error in messageCreate handler:', err);
+  }
+});
+
+/* ===================== INTERACTION HANDLER ===================== */
+
+client.on('interactionCreate', async (interaction) => {
+  try {
+    await handleInteractions(interaction, state, changelog);
+  } catch (err) {
+    console.error('Interaction failed:', err);
+    try {
+      if (interaction.replied || interaction.deferred) {
+        await interaction.followUp({ content: 'An error occurred!', ephemeral: true });
+      } else {
+        await interaction.reply({ content: 'An error occurred!', ephemeral: true });
+      }
+    } catch (e) {
+      // Ignore
+    }
+  }
+});
+
 /* ===================== ERROR HANDLING ===================== */
+
 process.on('unhandledRejection', (err) => {
   console.error('Unhandled rejection:', err);
 });
@@ -180,6 +435,5 @@ process.on('uncaughtException', (err) => {
 });
 
 /* ===================== LOGIN ===================== */
+
 client.login(TOKEN);
-
-
