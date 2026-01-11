@@ -370,24 +370,7 @@ client.on('messageCreate', async (message) => {
   }
 });
 
-/* ===================== INTERACTION HANDLER ===================== */
 
-client.on('interactionCreate', async (interaction) => {
-  try {
-    await handleInteractions(interaction, state, changelog);
-  } catch (err) {
-    console.error('Interaction failed:', err);
-    try {
-      if (interaction.replied || interaction.deferred) {
-        await interaction.followUp({ content: 'An error occurred!', ephemeral: true });
-      } else {
-        await interaction.reply({ content: 'An error occurred!', ephemeral: true });
-      }
-    } catch (e) {
-      // Ignore
-    }
-  }
-});
 
 /* ===================== ERROR HANDLING ===================== */
 
@@ -403,5 +386,6 @@ process.on('uncaughtException', (err) => {
 /* ===================== LOGIN ===================== */
 
 client.login(TOKEN);
+
 
 
